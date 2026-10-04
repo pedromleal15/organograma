@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "features": [
+    {
+      "id": "f1",
+      "title": "App estático de organograma renderiza sem dependências externas",
+      "acceptance": "npm test verde validando index.html e referências locais",
+      "status": "passing",
+      "proof": "npm test → 10 checks passed"
+    },
+    {
+      "id": "f2",
+      "title": "Organograma permite filtrar, selecionar e adicionar pessoas com persistência local",
+      "acceptance": "node --check src/main.js verde e teste estático encontra controles e armazenamento local",
+      "status": "passing",
+      "proof": "node --check src/main.js && npm test → exitCode 0; 10 checks passed"
+    },
+    {
+      "id": "f3",
+      "title": "Interface responsiva e acessível com foco visível",
+      "acceptance": "npm test verde validando landmarks, aria e :focus-visible",
+      "status": "passing",
+      "proof": "npm test → 10 checks passed"
+    }
+  ]
+}
