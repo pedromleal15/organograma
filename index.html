@@ -3,85 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Glyco — Organograma Corporativo</title>
-    <link rel="stylesheet" href="src/styles.css" />
-    <script type="module" src="src/main.js"></script>
+    <title>Glyco — Organograma e Tasks</title>
   </head>
   <body>
-    <header class="app-header">
-      <div>
-        <p class="eyebrow">Glyco · Estrutura corporativa</p>
-        <h1>Organograma da Glyco</h1>
-        <p class="intro">Mapa de cargos e áreas da Glyco: hierarquia validada, metas e estratégia por área, e lacunas de estrutura em aberto. Sem dados pessoais — apenas cargos e áreas.</p>
-      </div>
-      <button class="secondary-button" id="reset-data" type="button">Restaurar exemplo</button>
-    </header>
-
-    <main class="app-shell">
-      <section class="toolbar" aria-labelledby="filters-title">
-        <div>
-          <h2 id="filters-title">Buscar no organograma</h2>
-          <p>Filtre por cargo, área ou unidade.</p>
-        </div>
-        <label class="search-field">
-          <span>Busca</span>
-          <input id="search" type="search" placeholder="Ex.: Produto, CEO, Remoto" autocomplete="off" />
-        </label>
-      </section>
-
-      <section class="content-grid">
-        <section class="panel chart-panel" aria-labelledby="chart-title">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">Estrutura</p>
-              <h2 id="chart-title">Cargos e áreas</h2>
-            </div>
-            <p id="result-count" aria-live="polite"></p>
-          </div>
-          <div id="org-chart" class="org-chart" role="tree" aria-label="Cargos no organograma"></div>
-        </section>
-
-        <aside class="panel detail-panel" aria-labelledby="details-title">
-          <p class="eyebrow">Detalhes</p>
-          <h2 id="details-title">Cargo selecionado</h2>
-          <div id="person-details" class="person-details" aria-live="polite"></div>
-        </aside>
-      </section>
-
-      <section class="panel form-panel" aria-labelledby="form-title">
-        <div>
-          <p class="eyebrow">Cadastro</p>
-          <h2 id="form-title">Novo cargo</h2>
-          <p>Novos cargos ficam salvos neste navegador.</p>
-        </div>
-        <form id="person-form" class="person-form">
-          <label>
-            <span>Nome do cargo</span>
-            <input name="name" required minlength="2" placeholder="Ex.: Head de Produto" />
-          </label>
-          <label>
-            <span>Título ou nível</span>
-            <input name="role" required minlength="2" placeholder="Ex.: Sênior, Coordenação" />
-          </label>
-          <label>
-            <span>Área</span>
-            <input name="department" required minlength="2" placeholder="Ex.: Produto, Operações" />
-          </label>
-          <label>
-            <span>Unidade ou formato</span>
-            <input name="location" required minlength="2" placeholder="Ex.: Remoto, São Paulo" />
-          </label>
-          <label>
-            <span>Reporta-se a</span>
-            <select name="managerId" id="manager-select"></select>
-          </label>
-          <button type="submit">Adicionar cargo</button>
-        </form>
-      </section>
-    </main>
-
-    <footer class="app-footer">
-      <p>Dados armazenados localmente no navegador.</p>
-    </footer>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

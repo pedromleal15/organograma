@@ -1,0 +1,40 @@
+openapi: 3.1.0
+info:
+  title: Glyco Organograma e Tasks
+  version: 1.0.0
+paths:
+  /api/v1/document:
+    get:
+      summary: Lê o documento compartilhado
+      responses:
+        '200':
+          description: Documento e revisão
+        '401':
+          description: Sem sessão
+    put:
+      summary: Grava o documento se If-Match bater com a revisão
+      parameters:
+        - in: header
+          name: If-Match
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Gravado
+        '409':
+          description: Conflito de revisão
+        '422':
+          description: Documento inválido
+  /api/v1/agent/apply:
+    post:
+      summary: Aplica uma proposta idempotente
+      responses:
+        '200':
+          description: Aplicada ou repetida sem efeito extra
+        '409':
+          description: Revisão divergente ou validação recusada
+  /mcp:
+    post:
+      summary: MCP Streamable HTTP com initialize, tools/list e tools/call
+      responses:
+        '200':
+          description: Resposta JSON-RPC

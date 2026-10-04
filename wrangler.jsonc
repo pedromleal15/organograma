@@ -1,0 +1,24 @@
+{
+  "name": "glyco-organograma",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-04",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+  "observability": {
+    "enabled": true,
+    "traces": { "enabled": true }
+  },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "glyco-organograma", "database_id": "11d3961a-8c65-44dd-af4f-7510d4b6ee59" }
+  ],
+  "kv_namespaces": [
+    { "binding": "OAUTH", "id": "dc551372860449fe9be5e60bf7a8b253" }
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "MCP_HUB", "class_name": "McpHub" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["McpHub"] }]
+}
