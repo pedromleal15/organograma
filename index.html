@@ -3,16 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Meu Organograma</title>
+    <title>Glyco — Organograma Corporativo</title>
     <link rel="stylesheet" href="src/styles.css" />
     <script type="module" src="src/main.js"></script>
   </head>
   <body>
     <header class="app-header">
       <div>
-        <p class="eyebrow">Organograma pessoal</p>
-        <h1>Meu Organograma</h1>
-        <p class="intro">Visualize sua estrutura, encontre pessoas rapidamente e registre novos cargos direto no navegador.</p>
+        <p class="eyebrow">Glyco · Estrutura corporativa</p>
+        <h1>Organograma da Glyco</h1>
+        <p class="intro">Mapa de cargos e áreas da Glyco: hierarquia validada, metas e estratégia por área, e lacunas de estrutura em aberto. Sem dados pessoais — apenas cargos e áreas.</p>
       </div>
       <button class="secondary-button" id="reset-data" type="button">Restaurar exemplo</button>
     </header>
@@ -21,11 +21,11 @@
       <section class="toolbar" aria-labelledby="filters-title">
         <div>
           <h2 id="filters-title">Buscar no organograma</h2>
-          <p>Filtre por nome, cargo, área ou localidade.</p>
+          <p>Filtre por cargo, área ou unidade.</p>
         </div>
         <label class="search-field">
           <span>Busca</span>
-          <input id="search" type="search" placeholder="Ex.: Produto, Ana, São Paulo" autocomplete="off" />
+          <input id="search" type="search" placeholder="Ex.: Produto, CEO, Remoto" autocomplete="off" />
         </label>
       </section>
 
@@ -34,16 +34,16 @@
           <div class="panel-heading">
             <div>
               <p class="eyebrow">Estrutura</p>
-              <h2 id="chart-title">Organograma</h2>
+              <h2 id="chart-title">Cargos e áreas</h2>
             </div>
             <p id="result-count" aria-live="polite"></p>
           </div>
-          <div id="org-chart" class="org-chart" role="tree" aria-label="Pessoas no organograma"></div>
+          <div id="org-chart" class="org-chart" role="tree" aria-label="Cargos no organograma"></div>
         </section>
 
         <aside class="panel detail-panel" aria-labelledby="details-title">
           <p class="eyebrow">Detalhes</p>
-          <h2 id="details-title">Pessoa selecionada</h2>
+          <h2 id="details-title">Cargo selecionado</h2>
           <div id="person-details" class="person-details" aria-live="polite"></div>
         </aside>
       </section>
@@ -51,31 +51,31 @@
       <section class="panel form-panel" aria-labelledby="form-title">
         <div>
           <p class="eyebrow">Cadastro</p>
-          <h2 id="form-title">Adicionar pessoa</h2>
-          <p>Novas pessoas ficam salvas neste navegador.</p>
+          <h2 id="form-title">Novo cargo</h2>
+          <p>Novos cargos ficam salvos neste navegador.</p>
         </div>
         <form id="person-form" class="person-form">
           <label>
-            <span>Nome</span>
-            <input name="name" required minlength="2" placeholder="Nome completo" />
+            <span>Nome do cargo</span>
+            <input name="name" required minlength="2" placeholder="Ex.: Head de Produto" />
           </label>
           <label>
-            <span>Cargo</span>
-            <input name="role" required minlength="2" placeholder="Cargo" />
+            <span>Título ou nível</span>
+            <input name="role" required minlength="2" placeholder="Ex.: Sênior, Coordenação" />
           </label>
           <label>
             <span>Área</span>
-            <input name="department" required minlength="2" placeholder="Área" />
+            <input name="department" required minlength="2" placeholder="Ex.: Produto, Operações" />
           </label>
           <label>
-            <span>Localidade</span>
-            <input name="location" required minlength="2" placeholder="Cidade ou remoto" />
+            <span>Unidade ou formato</span>
+            <input name="location" required minlength="2" placeholder="Ex.: Remoto, São Paulo" />
           </label>
           <label>
-            <span>Gestor(a)</span>
+            <span>Reporta-se a</span>
             <select name="managerId" id="manager-select"></select>
           </label>
-          <button type="submit">Adicionar ao organograma</button>
+          <button type="submit">Adicionar cargo</button>
         </form>
       </section>
     </main>
