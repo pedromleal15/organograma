@@ -4,12 +4,17 @@ import { addColumn, addTaskBlock, createGoal, createInitiative, createTask, defa
 import type { BoardColumn, TaskBlock, TaskItem } from '../domain/types'
 import { useStore } from '../state'
 import { MentionPullText } from './mention-textarea'
+import { Organograma } from './organograma'
 
 export function Tasks() {
   const store = useStore()
   const tasks = visibleTasks(store)
-  const columns = scenarioColumns(store.document, store.scenarioId)
+  const columns = scenarioColumns(store.document, store.scenarioId).filter((column) => (column.kind ?? 'workflow') === 'workflow')
   const selected = store.document.tasks.find((task) => task.id === store.selectedTaskId && task.scenarioId === store.scenarioId) ?? null
+
+  if (store.taskView === 'organograma') {
+    return <Organograma />
+  }
 
   return (
     <div className="stage">

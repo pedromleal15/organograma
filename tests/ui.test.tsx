@@ -1,5 +1,5 @@
 /** @vitest-environment happy-dom */
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AppDocument, ScenarioId } from '../src/domain/types'
 const OPEN_AREA_EVENT = 'glyco-open-area'
@@ -74,6 +74,14 @@ function renderApp() {
   )
 }
 
+function goOrganogramaEnv() {
+  fireEvent.click(within(screen.getByRole('group', { name: 'Ambiente' })).getByRole('button', { name: 'Organograma' }))
+}
+
+function goTasksEnv() {
+  fireEvent.click(within(screen.getByRole('group', { name: 'Ambiente' })).getByRole('button', { name: 'Tasks' }))
+}
+
 describe('ambientes', () => {
   beforeEach(() => {
     localStorage.clear()
@@ -87,13 +95,22 @@ describe('ambientes', () => {
     expect(screen.getAllByRole('button', { name: 'CEO & Founder' }).length).toBeGreaterThan(0)
     fireEvent.click(screen.getByRole('button', { name: 'Planejada' }))
     expect(screen.getByRole('button', { name: 'Head de Engenharia' })).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Tasks' }))
+    fireEvent.click(within(screen.getByRole('group', { name: 'Ambiente' })).getByRole('button', { name: 'Tasks' }))
     expect(screen.getByText('Listar médicos para a primeira abordagem')).toBeTruthy()
     expect(screen.queryByText('Revisar cargos propostos antes de aplicar na estrutura atual')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Planejada' }))
     expect(screen.getByText('Revisar cargos propostos antes de aplicar na estrutura atual')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Organograma' }))
+    goOrganogramaEnv()
     expect(screen.getByRole('button', { name: 'Head de Engenharia' })).toBeTruthy()
+  })
+
+  it('abre Organograma dentro de Tasks com Canvas', () => {
+    renderApp()
+    goTasksEnv()
+    fireEvent.click(within(screen.getByRole('group', { name: 'Visualização de tasks' })).getByRole('button', { name: 'Organograma' }))
+    expect(screen.getByText('Tasks / Organograma')).toBeTruthy()
+    expect(screen.getByRole('tree', { name: 'Cargos no organograma' })).toBeTruthy()
+    expect(screen.getByRole('group', { name: 'Visualização do organograma em tasks' })).toBeTruthy()
   })
 
   it('abre o cargo a partir da tarefa', () => {
@@ -331,7 +348,7 @@ describe('sincronização Canvas ↔ Tasks', () => {
     fireEvent.blur(firstInput)
 
     // Retorna ao Canvas (Organograma)
-    fireEvent.click(screen.getByRole('button', { name: 'Organograma' }))
+    goOrganogramaEnv()
 
     // O mock do Canvas exibe {col.title} no botão .lane-node — deve refletir o novo nome
     const updatedLane = screen.getAllByRole('button').find(
@@ -356,7 +373,7 @@ describe('sincronização Canvas ↔ Tasks', () => {
     expect(screen.getByText('Tarefa Renomeada Sync')).toBeTruthy()
 
     // Canvas lê o mesmo store — verifica lanes ainda renderizando corretamente
-    fireEvent.click(screen.getByRole('button', { name: 'Organograma' }))
+    goOrganogramaEnv()
     const laneButtons = screen.getAllByRole('button').filter((btn) => btn.classList.contains('lane-node'))
     expect(laneButtons.length).toBeGreaterThan(0)
   })

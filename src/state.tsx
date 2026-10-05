@@ -8,7 +8,7 @@ import type { AppDocument, Result, ScenarioId } from './domain/types'
 const UI_KEY = 'glyco-org-ui'
 
 export type OrgView = 'canvas' | 'matriz' | 'tabela'
-export type TaskView = 'quadro' | 'lista' | 'metas'
+export type TaskView = 'quadro' | 'lista' | 'metas' | 'organograma'
 export type Environment = 'organograma' | 'tasks' | 'configuracoes' | 'conexoes'
 
 interface UiMemory {

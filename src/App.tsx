@@ -40,6 +40,17 @@ export function App() {
             <button type="button" aria-pressed={store.taskView === 'quadro'} onClick={() => store.setTaskView('quadro')}>Quadro</button>
             <button type="button" aria-pressed={store.taskView === 'lista'} onClick={() => store.setTaskView('lista')}>Lista</button>
             <button type="button" aria-pressed={store.taskView === 'metas'} onClick={() => store.setTaskView('metas')}>Metas</button>
+            <button type="button" aria-pressed={store.taskView === 'organograma'} onClick={() => {
+              store.setOrgView('canvas')
+              store.setTaskView('organograma')
+            }}>Organograma</button>
+          </div>
+        )}
+        {tasks && store.taskView === 'organograma' && (
+          <div className="view-switch" role="group" aria-label="Visualização do organograma em tasks">
+            <button type="button" aria-pressed={store.orgView === 'canvas'} onClick={() => store.setOrgView('canvas')}>Canvas</button>
+            <button type="button" aria-pressed={store.orgView === 'matriz'} onClick={() => store.setOrgView('matriz')}>Matriz</button>
+            <button type="button" aria-pressed={store.orgView === 'tabela'} onClick={() => store.setOrgView('tabela')}>Tabela</button>
           </div>
         )}
         <div className="sidebar-foot">
@@ -50,7 +61,7 @@ export function App() {
       </aside>
       <div className="workspace">
         <header className="topbar">
-          <p className="crumb">Glyco / <b>{organograma ? 'Organograma' : tasks ? 'Tasks' : store.environment === 'conexoes' ? 'Conexões' : 'Configurações'}</b></p>
+          <p className="crumb">Glyco / <b>{organograma ? 'Organograma' : tasks ? (store.taskView === 'organograma' ? 'Tasks / Organograma' : 'Tasks') : store.environment === 'conexoes' ? 'Conexões' : 'Configurações'}</b></p>
           {(organograma || tasks) && (
             <div className="env-switch" role="group" aria-label="Cenário">
               <button type="button" aria-pressed={store.scenarioId === 'atual'} onClick={() => store.setScenario('atual')}>Atual</button>
@@ -60,7 +71,7 @@ export function App() {
           {(organograma || tasks) && (
             <input className="search" type="search" placeholder="Buscar" aria-label="Buscar" value={store.search} onChange={(event) => store.setSearch(event.target.value)} />
           )}
-          {tasks && (
+          {tasks && store.taskView !== 'organograma' && (
             <select aria-label="Origem" value={store.taskOrigin} onChange={(event) => store.setTaskOrigin(event.target.value)}>
               <option value="">Todas as origens</option>
               <option value="local">Próprias</option>
@@ -70,8 +81,8 @@ export function App() {
             </select>
           )}
           <button className="ghost" type="button" onClick={store.undo} disabled={!store.canUndo}>Desfazer</button>
-          {organograma && <button className="primary" type="button" onClick={() => requestNewRole()}>+ Novo cargo</button>}
-          {tasks && <button className="primary" type="button" onClick={() => requestNewTask()}>+ Nova tarefa</button>}
+          {(organograma || (tasks && store.taskView === 'organograma')) && <button className="primary" type="button" onClick={() => requestNewRole()}>+ Novo cargo</button>}
+          {tasks && store.taskView !== 'organograma' && <button className="primary" type="button" onClick={() => requestNewTask()}>+ Nova tarefa</button>}
         </header>
         <p className="sr-only" aria-live="polite">{store.error || store.notice}</p>
         {(store.error || store.notice) && <div className="banner" role="status">{store.error || store.notice}</div>}
