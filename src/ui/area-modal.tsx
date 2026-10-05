@@ -124,6 +124,7 @@ export function AreaModal() {
       aria-modal="true"
       aria-labelledby={labelId}
       aria-describedby={descId}
+      onClose={close}
       onClick={(e) => { if (e.target === e.currentTarget) close() }}
     >
       <div className="area-modal-inner">

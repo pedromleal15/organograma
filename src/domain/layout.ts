@@ -40,7 +40,7 @@ export function layoutScenario(doc: AppDocument, scenarioId: ScenarioId): { node
   for (const relation of relations) {
     if (!visibleIds.has(relation.fromRoleId) || !visibleIds.has(relation.toRoleId)) continue
     edges.push({ id: relation.id, source: relation.toRoleId, target: relation.fromRoleId, kind: relation.kind })
-    if (relation.kind === 'direct' && !lateral.has(relation.fromRoleId)) {
+    if (relation.kind === 'direct' && !lateral.has(relation.fromRoleId) && !lateral.has(relation.toRoleId)) {
       graph.setEdge(relation.toRoleId, relation.fromRoleId)
     }
   }

@@ -622,11 +622,12 @@ function LaneModal({ scenarioId, columnId, onClose }: { scenarioId: ScenarioId; 
   const selectedTask = tasks.find((task) => task.id === store.selectedTaskId) ?? null
 
   useEffect(() => {
+    if (!column) return
     const dialog = dialogRef.current
     if (!dialog) return
     try { dialog.showModal() } catch { dialog.setAttribute('open', '') }
     return () => { try { if (dialog.open) dialog.close() } catch { /* ignore */ } }
-  }, [])
+  }, [column])
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {

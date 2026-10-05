@@ -37,7 +37,13 @@ export function Settings() {
           event.preventDefault()
           const file = new FormData(event.currentTarget).get('file')
           if (!(file instanceof File)) return
-          const raw = JSON.parse(await file.text()) as unknown
+          let raw: unknown
+          try {
+            raw = JSON.parse(await file.text()) as unknown
+          } catch {
+            store.apply({ ok: false, error: 'Arquivo JSON inválido.' })
+            return
+          }
           store.apply(replaceDocument(store.document, raw))
         }}
       >
@@ -52,9 +58,13 @@ export function Settings() {
           className="ghost"
           type="button"
           onClick={() => {
-            const raw = store.legacyPreview ? JSON.parse(store.legacyPreview) : null
-            const preview = previewLegacy(raw)
-            setLegacyMessage(preview.ok ? `${preview.value.count} itens: ${preview.value.titles.join(', ')}` : preview.error)
+            try {
+              const raw = store.legacyPreview ? JSON.parse(store.legacyPreview) : null
+              const preview = previewLegacy(raw)
+              setLegacyMessage(preview.ok ? `${preview.value.count} itens: ${preview.value.titles.join(', ')}` : preview.error)
+            } catch {
+              setLegacyMessage('Dados legados inválidos neste navegador.')
+            }
           }}
         >
           Ver prévia

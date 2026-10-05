@@ -7,6 +7,7 @@
  */
 import {
   useEffect,
+  useId,
   useLayoutEffect,
   useRef,
   useState,
@@ -172,23 +173,26 @@ export function MentionPullText({
   const showPreview =
     !focused && areas.some((a) => value.toLowerCase().includes(`@${a.title.toLowerCase()}`))
 
-  const dropdownId = 'mention-dropdown'
+  const dropdownId = useId()
 
   return (
     <div className="mention-field">
       {showPreview ? (
         /* ─── Preview / chip mode ─── */
-        <button
-          type="button"
-          className="mention-preview pull-text"
-          aria-label={`Editar: ${label}`}
-          onClick={() => {
-            setFocused(true)
-            requestAnimationFrame(() => ref.current?.focus())
-          }}
-        >
+        <div className="mention-preview pull-text" role="group" aria-label={label}>
           <MentionDisplay text={value} areas={areas} />
-        </button>
+          <button
+            type="button"
+            className="mention-edit"
+            aria-label={`Editar: ${label}`}
+            onClick={() => {
+              setFocused(true)
+              requestAnimationFrame(() => ref.current?.focus())
+            }}
+          >
+            Editar
+          </button>
+        </div>
       ) : (
         /* ─── Edit mode ─── */
         <textarea
@@ -197,7 +201,7 @@ export function MentionPullText({
           aria-label={label}
           aria-expanded={suggestions.length > 0}
           aria-controls={suggestions.length > 0 ? dropdownId : undefined}
-          aria-activedescendant={activeIdx >= 0 ? `mention-opt-${activeIdx}` : undefined}
+          aria-activedescendant={activeIdx >= 0 ? `${dropdownId}-opt-${activeIdx}` : undefined}
           value={value}
           placeholder={placeholder}
           rows={1}
@@ -223,7 +227,7 @@ export function MentionPullText({
           {suggestions.map((area, i) => (
             <li
               key={area.id}
-              id={`mention-opt-${i}`}
+              id={`${dropdownId}-opt-${i}`}
               role="option"
               aria-selected={i === activeIdx}
               className={`mention-option${i === activeIdx ? ' is-active' : ''}`}

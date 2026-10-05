@@ -603,6 +603,7 @@ export function copyRolesToScenario(
   const responsibilities = doc.responsibilities
     .filter((item) => item.roleId && idMap.has(item.roleId))
     .map((item) => ({ ...item, id: uid('resp'), scenarioId: target, roleId: idMap.get(item.roleId!)! }))
+  const targetColumns = scenarioColumns(doc, target)
   const tasks = includeTasks
     ? doc.tasks
         .filter((task) => task.scenarioId === source && task.roleId && idMap.has(task.roleId))
@@ -611,6 +612,9 @@ export function copyRolesToScenario(
           id: uid('task'),
           scenarioId: target,
           roleId: idMap.get(task.roleId!)!,
+          status: targetColumns.some((column) => column.id === task.status) ? task.status : targetColumns[0]?.id ?? 'todo',
+          initiativeId: null,
+          goalId: null,
           origin: 'local' as const,
           externalId: '',
         }))

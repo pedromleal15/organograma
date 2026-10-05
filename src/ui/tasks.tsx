@@ -102,6 +102,7 @@ function Column({ column, tasks }: { column: BoardColumn; tasks: TaskItem[] }) {
     >
       <div className="column-head">
         <input
+          key={`${column.id}:${column.title}`}
           className="column-name"
           aria-label={`Nome da coluna ${column.title}`}
           defaultValue={column.title}
