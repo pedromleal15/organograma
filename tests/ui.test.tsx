@@ -101,3 +101,75 @@ describe('ambientes', () => {
     expect(heading).toBeTruthy()
   })
 })
+
+describe('+ Nova tarefa', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    sessionStorage.clear()
+  })
+  afterEach(() => cleanup())
+
+  function openNewTaskForm() {
+    renderApp()
+    fireEvent.click(screen.getByRole('button', { name: 'Tasks' }))
+    fireEvent.click(screen.getByRole('button', { name: '+ Nova tarefa' }))
+  }
+
+  it('abre o formulário ao clicar em "+ Nova tarefa"', () => {
+    openNewTaskForm()
+    expect(screen.getByRole('form', { name: 'Nova tarefa' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Fechar formulário de nova tarefa' })).toBeTruthy()
+  })
+
+  it('fecha pelo botão X no cabeçalho', () => {
+    openNewTaskForm()
+    expect(screen.getByRole('form', { name: 'Nova tarefa' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar formulário de nova tarefa' }))
+    expect(screen.queryByRole('form', { name: 'Nova tarefa' })).toBeNull()
+  })
+
+  it('fecha ao pressionar Escape', () => {
+    openNewTaskForm()
+    expect(screen.getByRole('form', { name: 'Nova tarefa' })).toBeTruthy()
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByRole('form', { name: 'Nova tarefa' })).toBeNull()
+  })
+
+  it('fecha ao clicar no backdrop', () => {
+    openNewTaskForm()
+    expect(screen.getByRole('form', { name: 'Nova tarefa' })).toBeTruthy()
+    const backdrop = document.querySelector('.drawer-backdrop') as HTMLElement
+    expect(backdrop).toBeTruthy()
+    fireEvent.click(backdrop)
+    expect(screen.queryByRole('form', { name: 'Nova tarefa' })).toBeNull()
+  })
+
+  it('fecha pelo link Cancelar', () => {
+    openNewTaskForm()
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(screen.queryByRole('form', { name: 'Nova tarefa' })).toBeNull()
+  })
+
+  it('cria tarefa com sucesso e fecha automaticamente', () => {
+    openNewTaskForm()
+    const form = screen.getByRole('form', { name: 'Nova tarefa' })
+    fireEvent.change(screen.getByRole('textbox', { name: 'Título' }), { target: { value: 'Tarefa de teste' } })
+    fireEvent.click(screen.getByRole('checkbox', { name: /Confirmo que esta tarefa deve entrar/i }))
+    fireEvent.submit(form)
+    expect(screen.queryByRole('form', { name: 'Nova tarefa' })).toBeNull()
+  })
+
+  it('não fecha em caso de erro de domínio — preserva dados preenchidos', () => {
+    openNewTaskForm()
+    const form = screen.getByRole('form', { name: 'Nova tarefa' })
+    // título de apenas 1 caractere falha a regra de domínio (< 2)
+    fireEvent.change(screen.getByRole('textbox', { name: 'Título' }), { target: { value: 'X' } })
+    fireEvent.click(screen.getByRole('checkbox', { name: /Confirmo que esta tarefa deve entrar/i }))
+    fireEvent.submit(form)
+    // formulário ainda deve estar visível
+    expect(screen.getByRole('form', { name: 'Nova tarefa' })).toBeTruthy()
+    // valor preenchido ainda deve estar lá
+    const titleInput = screen.getByRole('textbox', { name: 'Título' }) as HTMLInputElement
+    expect(titleInput.value).toBe('X')
+  })
+})

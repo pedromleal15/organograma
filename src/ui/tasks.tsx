@@ -416,57 +416,89 @@ function NewTask() {
   const store = useStore()
   const [open, setOpen] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
+
   useEffect(() => {
     const openDrawer = () => setOpen(true)
     document.addEventListener('glyco-new-task', openDrawer)
     return () => document.removeEventListener('glyco-new-task', openDrawer)
   }, [])
+
+  useEffect(() => {
+    if (!open) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        setOpen(false)
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [open])
+
   if (!open) return null
   const roles = store.document.roles.filter((role) => role.scenarioId === store.scenarioId)
   return (
-    <form
-      className="drawer"
-      onSubmit={(event) => {
-        event.preventDefault()
-        const data = new FormData(event.currentTarget)
-        const created = createTask(store.document, store.scenarioId, {
-          title: String(data.get('title') ?? ''),
-          description: String(data.get('description') ?? ''),
-          priority: String(data.get('priority') ?? 'medium') as TaskItem['priority'],
-          due: String(data.get('due') ?? ''),
-          roleId: String(data.get('roleId') ?? '') || null,
-          checklist: [],
-        })
-        if (!confirmed) return
-        if (store.apply(created)) {
-          setConfirmed(false)
-          setOpen(false)
-        }
-      }}
-    >
-      <h2>Nova tarefa</h2>
-      <label className="field"><span>Título</span><input name="title" required minLength={2} /></label>
-      <label className="field"><span>Descrição</span><textarea name="description" /></label>
-      <label className="field"><span>Prazo</span><input name="due" type="date" /></label>
-      <label className="field">
-        <span>Prioridade</span>
-        <select name="priority"><option value="low">Baixa</option><option value="medium">Média</option><option value="high">Alta</option></select>
-      </label>
-      <label className="field">
-        <span>Cargo</span>
-        <select name="roleId"><option value="">Sem responsável</option>{roles.map((role) => <option key={role.id} value={role.id}>{role.title}</option>)}</select>
-      </label>
-      <div className="action-block">
-        <p className="action-label">Confirmar criação <span>*</span></p>
-        <label className="consent-row">
-          <input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} />
-          <span>Confirmo que esta tarefa deve entrar no quadro de execução.</span>
+    <>
+      <div
+        className="drawer-backdrop"
+        aria-hidden="true"
+        onClick={() => setOpen(false)}
+      />
+      <form
+        className="drawer"
+        aria-label="Nova tarefa"
+        onSubmit={(event) => {
+          event.preventDefault()
+          const data = new FormData(event.currentTarget)
+          const created = createTask(store.document, store.scenarioId, {
+            title: String(data.get('title') ?? ''),
+            description: String(data.get('description') ?? ''),
+            priority: String(data.get('priority') ?? 'medium') as TaskItem['priority'],
+            due: String(data.get('due') ?? ''),
+            roleId: String(data.get('roleId') ?? '') || null,
+            checklist: [],
+          })
+          if (!confirmed) return
+          if (store.apply(created)) {
+            setConfirmed(false)
+            setOpen(false)
+          }
+        }}
+      >
+        <div className="drawer-head">
+          <h2>Nova tarefa</h2>
+          <button
+            className="icon-button"
+            type="button"
+            aria-label="Fechar formulário de nova tarefa"
+            onClick={() => setOpen(false)}
+          >
+            ×
+          </button>
+        </div>
+        <label className="field"><span>Título</span><input name="title" required minLength={2} /></label>
+        <label className="field"><span>Descrição</span><textarea name="description" /></label>
+        <label className="field"><span>Prazo</span><input name="due" type="date" /></label>
+        <label className="field">
+          <span>Prioridade</span>
+          <select name="priority"><option value="low">Baixa</option><option value="medium">Média</option><option value="high">Alta</option></select>
         </label>
-        <button className="primary pill-button" type="submit" disabled={!confirmed}>Criar tarefa</button>
-        <div className="action-divider" />
-        <button className="secondary-link" type="button" onClick={() => setOpen(false)}>Cancelar</button>
-      </div>
-    </form>
+        <label className="field">
+          <span>Cargo</span>
+          <select name="roleId"><option value="">Sem responsável</option>{roles.map((role) => <option key={role.id} value={role.id}>{role.title}</option>)}</select>
+        </label>
+        <div className="action-block">
+          <p className="action-label">Confirmar criação <span>*</span></p>
+          <label className="consent-row">
+            <input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} />
+            <span>Confirmo que esta tarefa deve entrar no quadro de execução.</span>
+          </label>
+          <button className="primary pill-button" type="submit" disabled={!confirmed}>Criar tarefa</button>
+          <div className="action-divider" />
+          <button className="secondary-link" type="button" onClick={() => setOpen(false)}>Cancelar</button>
+        </div>
+      </form>
+    </>
   )
 }
 

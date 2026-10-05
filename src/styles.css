@@ -240,6 +240,30 @@ button { min-height: 44px; }
 .zoom-dock { left: 50%; bottom: 18px; transform: translateX(-50%); }
 .zoom-dock span { min-width: 48px; text-align: center; color: var(--muted); font-size: 0.8rem; }
 
+.drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: rgba(15, 23, 42, 0.28);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.drawer-head h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+}
+
 .drawer, .sheet {
   position: absolute;
   top: 0;
