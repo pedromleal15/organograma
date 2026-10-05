@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { parseDocument } from './domain/rules'
-import { ensureBoardColumns, ensureRoleColumns } from './domain/board'
+import { defaultBoardId, ensureBoardColumns, ensureRoleColumns } from './domain/board'
 import { createSeed, ensureCanonicalAreas } from './domain/seed'
 import { DOCUMENT_KEY, DRAFT_KEY, LEGACY_KEY, saveDocument, type KeyValue } from './domain/sync'
 import type { AppDocument, Result, ScenarioId } from './domain/types'
@@ -17,6 +17,7 @@ interface UiMemory {
   taskView: TaskView
   search: string
   taskOrigin: string
+  activeBoardByScenario: { atual: string; planejada: string }
 }
 
 interface History {
@@ -35,6 +36,7 @@ interface Store {
   taskView: TaskView
   search: string
   taskOrigin: string
+  activeBoardId: string
   selectedRoleId: string
   selectedTaskId: string
   canUndo: boolean
@@ -51,6 +53,7 @@ interface Store {
   setTaskView: (view: TaskView) => void
   setSearch: (search: string) => void
   setTaskOrigin: (origin: string) => void
+  setActiveBoardId: (boardId: string) => void
   setSelectedRoleId: (id: string) => void
   setSelectedTaskId: (id: string) => void
   dismissLegacy: () => void
@@ -84,6 +87,7 @@ function readUi(): UiMemory {
     taskView: 'quadro',
     search: '',
     taskOrigin: '',
+    activeBoardByScenario: { atual: defaultBoardId('atual'), planejada: defaultBoardId('planejada') },
   }
   try {
     const raw = sessionStorage.getItem(UI_KEY)
@@ -153,6 +157,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       taskView: memory.taskView,
       search: memory.search,
       taskOrigin: memory.taskOrigin,
+      activeBoardId: memory.activeBoardByScenario?.[scenarioId] ?? defaultBoardId(scenarioId),
       selectedRoleId,
       selectedTaskId,
       canUndo: history.past.length > 0,
@@ -205,6 +210,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setTaskView: (taskView) => setMemory((current) => ({ ...current, taskView })),
       setSearch: (search) => setMemory((current) => ({ ...current, search })),
       setTaskOrigin: (taskOrigin) => setMemory((current) => ({ ...current, taskOrigin })),
+      setActiveBoardId: (boardId) => setMemory((current) => ({
+        ...current,
+        activeBoardByScenario: {
+          ...current.activeBoardByScenario,
+          [scenarioId]: boardId,
+        },
+      })),
       setSelectedRoleId,
       setSelectedTaskId,
       dismissLegacy: () => setLegacyPreview(null),

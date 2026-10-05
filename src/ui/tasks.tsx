@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import { scenarioColumns } from '../domain/board'
-import { addColumn, addTaskBlock, createGoal, createInitiative, createTask, defaultTaskBlocks, removeColumn, removeTaskBlock, renameColumn, resizeColumn, setTaskStatus, updateGoalProgress, updateTask, updateTaskBlock } from '../domain/rules'
+import { defaultBoardId, scenarioColumns } from '../domain/board'
+import { addColumn, addTaskBlock, createBoard, createGoal, createInitiative, createTask, defaultTaskBlocks, removeColumn, removeTaskBlock, renameColumn, resizeColumn, setTaskStatus, updateGoalProgress, updateTask, updateTaskBlock } from '../domain/rules'
 import type { BoardColumn, TaskBlock, TaskItem } from '../domain/types'
 import { useStore } from '../state'
 import { MentionPullText } from './mention-textarea'
@@ -9,7 +9,8 @@ import { Organograma } from './organograma'
 export function Tasks() {
   const store = useStore()
   const tasks = visibleTasks(store)
-  const columns = scenarioColumns(store.document, store.scenarioId).filter((column) => (column.kind ?? 'workflow') === 'workflow')
+  const boardId = store.activeBoardId || defaultBoardId(store.scenarioId)
+  const columns = scenarioColumns(store.document, store.scenarioId, boardId).filter((column) => (column.kind ?? 'workflow') === 'workflow')
   const selected = store.document.tasks.find((task) => task.id === store.selectedTaskId && task.scenarioId === store.scenarioId) ?? null
 
   if (store.taskView === 'organograma') {
@@ -25,7 +26,7 @@ export function Tasks() {
               {columns.map((column) => (
                 <Column key={`${column.scenarioId}-${column.id}`} column={column} tasks={tasks.filter((task) => task.status === column.id)} />
               ))}
-              <NewColumn />
+              <NewColumn boardId={boardId} />
             </div>
           </div>
         </div>
@@ -54,6 +55,7 @@ export function Tasks() {
       {store.taskView === 'metas' && <Goals />}
       {selected && <TaskDrawer task={selected} />}
       <NewTask />
+      <NewBoard />
     </div>
   )
 }
@@ -117,7 +119,7 @@ function Column({ column, tasks }: { column: BoardColumn; tasks: TaskItem[] }) {
   )
 }
 
-function NewColumn() {
+function NewColumn({ boardId }: { boardId: string }) {
   const store = useStore()
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
@@ -131,7 +133,7 @@ function NewColumn() {
       onSubmit={(event) => {
         event.preventDefault()
         if (!confirmed) return
-        if (store.apply(addColumn(store.document, store.scenarioId, title))) {
+        if (store.apply(addColumn(store.document, store.scenarioId, title, boardId))) {
           setTitle('')
           setConfirmed(false)
           setOpen(false)
@@ -153,7 +155,10 @@ function NewColumn() {
 
 export function TaskCard({ task }: { task: TaskItem }) {
   const store = useStore()
-  const columns = scenarioColumns(store.document, task.scenarioId)
+  const taskBoardId = store.document.columns.find((column) => column.id === task.status)?.boardId
+    ?? store.activeBoardId
+    ?? defaultBoardId(task.scenarioId)
+  const columns = scenarioColumns(store.document, task.scenarioId, taskBoardId)
   const role = store.document.roles.find((item) => item.id === task.roleId)
   const goal = store.document.goals.find((item) => item.id === task.goalId)
   return (
@@ -533,6 +538,54 @@ function NewTask() {
 
 export function requestNewTask() {
   document.dispatchEvent(new CustomEvent('glyco-new-task'))
+}
+
+export function requestNewBoard() {
+  document.dispatchEvent(new CustomEvent('glyco-new-board'))
+}
+
+function NewBoard() {
+  const store = useStore()
+  const [open, setOpen] = useState(false)
+  const [title, setTitle] = useState('')
+  useEffect(() => {
+    const openForm = () => setOpen(true)
+    document.addEventListener('glyco-new-board', openForm)
+    return () => document.removeEventListener('glyco-new-board', openForm)
+  }, [])
+  if (!open) return null
+  return (
+    <>
+      <div className="drawer-backdrop" aria-hidden onClick={() => setOpen(false)} />
+      <form
+        className="drawer"
+        aria-label="Novo quadro"
+        onSubmit={(event) => {
+          event.preventDefault()
+          const created = createBoard(store.document, store.scenarioId, title)
+          if (store.apply(created) && created.ok) {
+            const board = created.value.boards.at(-1)
+            if (board) store.setActiveBoardId(board.id)
+            setTitle('')
+            setOpen(false)
+          }
+        }}
+      >
+        <div className="drawer-head">
+          <h2>Novo quadro</h2>
+          <button className="icon-button" type="button" aria-label="Fechar formulário de novo quadro" onClick={() => setOpen(false)}>×</button>
+        </div>
+        <label className="field">
+          <span>Nome</span>
+          <input value={title} onChange={(event) => setTitle(event.target.value)} required minLength={2} placeholder="Ex.: Comercial" autoFocus />
+        </label>
+        <div className="row-actions">
+          <button className="primary" type="submit">Criar quadro</button>
+          <button className="ghost" type="button" onClick={() => setOpen(false)}>Cancelar</button>
+        </div>
+      </form>
+    </>
+  )
 }
 
 function roleTitle(document: { roles: { id: string; title: string }[] }, roleId: string | null) {

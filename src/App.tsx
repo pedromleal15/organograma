@@ -1,8 +1,9 @@
 import { requestNewRole, Organograma } from './ui/organograma'
 import { Connections, Settings } from './ui/pages'
-import { requestNewTask, Tasks } from './ui/tasks'
+import { requestNewBoard, requestNewTask, Tasks } from './ui/tasks'
 import { AreaModal } from './ui/area-modal'
 import { useStore } from './state'
+import { defaultBoardId, scenarioBoards } from './domain/board'
 import './styles.css'
 
 export function App() {
@@ -62,6 +63,24 @@ export function App() {
       <div className="workspace">
         <header className="topbar">
           <p className="crumb">Glyco / <b>{organograma ? 'Organograma' : tasks ? (store.taskView === 'organograma' ? 'Tasks / Organograma' : 'Tasks') : store.environment === 'conexoes' ? 'Conexões' : 'Configurações'}</b></p>
+          {tasks && store.taskView === 'quadro' && (
+            <>
+              <select
+                className="board-switch"
+                aria-label="Quadro ativo"
+                value={store.activeBoardId}
+                onChange={(event) => store.setActiveBoardId(event.target.value)}
+              >
+                {scenarioBoards(store.document, store.scenarioId).map((board) => (
+                  <option key={board.id} value={board.id}>{board.title}</option>
+                ))}
+                {scenarioBoards(store.document, store.scenarioId).length === 0 && (
+                  <option value={defaultBoardId(store.scenarioId)}>Quadro principal</option>
+                )}
+              </select>
+              <button className="ghost" type="button" onClick={() => requestNewBoard()}>Novo quadro</button>
+            </>
+          )}
           {(organograma || tasks) && (
             <div className="env-switch" role="group" aria-label="Cenário">
               <button type="button" aria-pressed={store.scenarioId === 'atual'} onClick={() => store.setScenario('atual')}>Atual</button>

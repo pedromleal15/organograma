@@ -135,6 +135,7 @@ export function syntheticTree(count: number): AppDocument {
     goals: [],
     initiatives: [],
     tasks: [],
+    boards: [],
     columns: [],
     connections: [],
     audit: [],

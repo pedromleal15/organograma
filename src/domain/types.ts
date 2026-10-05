@@ -111,6 +111,13 @@ export interface Initiative {
 
 export type BoardColumnKind = 'workflow' | 'role'
 
+export interface Board {
+  id: string
+  scenarioId: ScenarioId
+  title: string
+  order: number
+}
+
 export interface BoardColumn {
   id: string
   scenarioId: ScenarioId
@@ -121,6 +128,8 @@ export interface BoardColumn {
   kind: BoardColumnKind
   /** Preenchido quando kind === 'role' */
   roleId: string | null
+  /** Quadro ao qual a coluna pertence */
+  boardId: string
 }
 
 export interface ChecklistItem {
@@ -197,6 +206,7 @@ export interface AppDocument {
   goals: Goal[]
   initiatives: Initiative[]
   tasks: TaskItem[]
+  boards: Board[]
   columns: BoardColumn[]
   connections: Connection[]
   audit: AuditEntry[]

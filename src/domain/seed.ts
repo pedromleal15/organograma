@@ -1,4 +1,4 @@
-import { makeRoleColumn, starterColumns } from './board'
+import { makeRoleColumn, starterBoard, starterColumns } from './board'
 import type { AppDocument, Area, ScenarioId } from './types'
 
 const SOURCE = 'glyco-data.js'
@@ -174,6 +174,7 @@ export function createSeed(): AppDocument {
       ...starterColumns('planejada'),
       makeRoleColumn('planejada', 'plan-ceo', 'CEO & Founder', 4),
     ],
+    boards: [starterBoard('atual'), starterBoard('planejada')],
     tasks: [
       {
         id: 'task-whatsapp',

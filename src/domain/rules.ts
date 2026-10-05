@@ -1,4 +1,4 @@
-import { clampColumnWidth, ensureBoardColumns, ensureRoleColumns, makeRoleColumn, roleColumnId, scenarioColumns } from './board'
+import { clampColumnWidth, defaultBoardId, ensureBoardColumns, ensureRoleColumns, makeRoleColumn, roleColumnId, scenarioColumns, starterColumns } from './board'
 import { ensureCanonicalAreas } from './seed'
 import { uid } from './ids'
 import type {
@@ -240,7 +240,7 @@ export function createRole(
     columnBandId: null,
     order: doc.placements.length,
   }
-  const order = scenarioColumns(doc, scenarioId).reduce((max, column) => Math.max(max, column.order), -1) + 1
+  const order = scenarioColumns(doc, scenarioId, defaultBoardId(scenarioId)).reduce((max, column) => Math.max(max, column.order), -1) + 1
   const roleColumn = makeRoleColumn(scenarioId, role.id, name, order)
   return {
     ok: true,
@@ -423,12 +423,43 @@ export function renameColumn(doc: AppDocument, scenarioId: ScenarioId, columnId:
   return { ok: true, value: commit({ ...doc, columns }, {}, 'renomear-coluna', name) }
 }
 
-export function addColumn(doc: AppDocument, scenarioId: ScenarioId, title: string): Result<AppDocument> {
+export function addColumn(doc: AppDocument, scenarioId: ScenarioId, title: string, boardId?: string): Result<AppDocument> {
   const name = title.trim()
   if (!name) return fail('A coluna precisa de um nome.')
-  const order = scenarioColumns(doc, scenarioId).reduce((max, column) => Math.max(max, column.order), -1) + 1
-  const column = { id: uid('col'), scenarioId, title: name, order, width: 360, kind: 'workflow' as const, roleId: null }
+  const targetBoard = boardId ?? defaultBoardId(scenarioId)
+  const order = scenarioColumns(doc, scenarioId, targetBoard).reduce((max, column) => Math.max(max, column.order), -1) + 1
+  const column = {
+    id: uid('col'),
+    scenarioId,
+    title: name,
+    order,
+    width: 360,
+    kind: 'workflow' as const,
+    roleId: null,
+    boardId: targetBoard,
+  }
   return { ok: true, value: commit({ ...doc, columns: [...doc.columns, column] }, {}, 'nova-coluna', name) }
+}
+
+export function createBoard(doc: AppDocument, scenarioId: ScenarioId, title: string): Result<AppDocument> {
+  const name = title.trim()
+  if (name.length < 2) return fail('O quadro precisa de um nome.')
+  const boards = doc.boards ?? []
+  if (boards.some((board) => board.scenarioId === scenarioId && board.title.toLowerCase() === name.toLowerCase())) {
+    return fail('Já existe um quadro com este nome neste cenário.')
+  }
+  const order = boards.filter((board) => board.scenarioId === scenarioId).reduce((max, board) => Math.max(max, board.order), -1) + 1
+  const board = { id: uid('board'), scenarioId, title: name, order }
+  const columns = starterColumns(scenarioId, board.id)
+  return {
+    ok: true,
+    value: commit(
+      { ...doc, boards: [...boards, board], columns: [...doc.columns, ...columns] },
+      {},
+      'novo-quadro',
+      name,
+    ),
+  }
 }
 
 export function addRoleColumn(doc: AppDocument, roleId: string): Result<AppDocument> {
@@ -440,8 +471,9 @@ export function addRoleColumn(doc: AppDocument, roleId: string): Result<AppDocum
   if (doc.columns.some((column) => column.id === roleColumnId(roleId))) {
     return fail('Já existe uma coluna com este id.')
   }
-  const order = scenarioColumns(doc, role.scenarioId).reduce((max, column) => Math.max(max, column.order), -1) + 1
-  const column = makeRoleColumn(role.scenarioId, roleId, role.title, order)
+  const boardId = defaultBoardId(role.scenarioId)
+  const order = scenarioColumns(doc, role.scenarioId, boardId).reduce((max, column) => Math.max(max, column.order), -1) + 1
+  const column = makeRoleColumn(role.scenarioId, roleId, role.title, order, boardId)
   return { ok: true, value: commit({ ...doc, columns: [...doc.columns, column] }, {}, 'coluna-cargo', role.title) }
 }
 
@@ -606,6 +638,7 @@ export function parseDocument(raw: unknown): Result<AppDocument> {
     if (!Array.isArray(raw[key])) return fail(`Lista ausente: ${key}.`)
   }
   if (raw.columns !== undefined && !Array.isArray(raw.columns)) return fail('Lista ausente: columns.')
+  if (raw.boards !== undefined && !Array.isArray(raw.boards)) return fail('Lista ausente: boards.')
   if (typeof raw.revision !== 'number') return fail('Revisão inválida.')
   const withBlocks = {
     ...raw,
