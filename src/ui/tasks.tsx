@@ -112,6 +112,21 @@ function Column({ column, tasks }: { column: BoardColumn; tasks: TaskItem[] }) {
         />
         <button className="mini-button" type="button" aria-label={`Remover ${column.title}`} onClick={() => store.apply(removeColumn(store.document, column.scenarioId, column.id))}>×</button>
       </div>
+      <button
+        className="add-column-task"
+        type="button"
+        aria-label={`Nova tarefa em ${column.title}`}
+        onClick={() => {
+          store.apply(createTask(store.document, column.scenarioId, {
+            title: 'Nova tarefa',
+            status: column.id,
+            description: '',
+            checklist: [],
+          }))
+        }}
+      >
+        <span aria-hidden="true">+</span>
+      </button>
       <div className="column-cards">
         {tasks.map((task) => <TaskCard key={task.id} task={task} />)}
       </div>

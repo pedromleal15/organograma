@@ -237,6 +237,27 @@ describe('+ Nova tarefa', () => {
   })
 })
 
+describe('+ na coluna do Quadro', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    sessionStorage.clear()
+  })
+  afterEach(() => cleanup())
+
+  it('cria card com blocos padrão na coluna', () => {
+    renderApp()
+    fireEvent.click(screen.getByRole('button', { name: 'Tasks' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Nova tarefa em Em andamento' }))
+    const title = screen.getByRole('textbox', { name: 'Título de Nova tarefa' })
+    expect(title).toBeTruthy()
+    const card = title.closest('article.task-card')
+    expect(card).toBeTruthy()
+    expect(within(card as HTMLElement).getByRole('button', { name: 'Redimensionar Ferramentas' })).toBeTruthy()
+    expect(within(card as HTMLElement).getByRole('button', { name: 'Redimensionar Objetivo' })).toBeTruthy()
+    expect(within(card as HTMLElement).getByRole('button', { name: 'Redimensionar Contexto' })).toBeTruthy()
+  })
+})
+
 /** Helper: get the area-modal <dialog> element (always in DOM) */
 function getAreaDialog(): HTMLDialogElement | null {
   return document.querySelector('dialog.area-modal')

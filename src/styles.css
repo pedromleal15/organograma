@@ -365,6 +365,29 @@ button { min-height: 44px; }
   letter-spacing: -0.02em;
 }
 .column-name:hover, .column-name:focus { border-color: var(--line); background: rgba(12, 14, 18, 0.38); }
+.add-column-task {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  margin: 2px auto 10px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--muted);
+  font-size: 1.35rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 150ms ease-out, color 150ms ease-out, background 150ms ease-out;
+}
+.add-column-task:hover,
+.add-column-task:focus-visible {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 8%, #fff);
+}
 .column-cards {
   display: grid;
   gap: 10px;
@@ -386,7 +409,26 @@ button { min-height: 44px; }
 }
 .column-resize::after { content: ""; position: absolute; inset: 0 7px; border-radius: 99px; background: transparent; }
 .column-resize:hover::after, .column-resize:focus-visible::after { background: var(--blue); }
-.add-column { width: 144px; flex: 0 0 144px; align-self: flex-start; min-height: 120px; border-style: dashed; }
+.add-column {
+  width: max-content;
+  flex: 0 0 auto;
+  align-self: flex-start;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+  background: #fff;
+  color: var(--text);
+  font-weight: 510;
+  box-shadow: none;
+  white-space: nowrap;
+}
+.add-column:hover,
+.add-column:focus-visible {
+  background: var(--surface-hover);
+  border-color: var(--line);
+  color: var(--text);
+}
 .add-column-form { width: 280px; flex: 0 0 280px; align-self: flex-start; overflow: auto; }
 
 .task-card { padding: 16px; margin: 0; border-radius: 20px; background: #1c1e24; }
@@ -1317,7 +1359,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--blue); }
   .app { grid-template-columns: 1fr; padding: 8px; }
   .sidebar { min-height: auto; margin: 0; border: 1px solid var(--line); }
   .board { width: max-content; display: flex; }
-  .glass-column, .add-column, .add-column-form { width: min(86vw, 400px) !important; max-width: min(86vw, 400px); }
+  .glass-column, .add-column-form { width: min(86vw, 400px) !important; max-width: min(86vw, 400px); }
   .column-resize { display: none; }
   .drawer { top: auto; bottom: 0; width: 100%; height: min(70vh, 560px); border-left: 0; border-top: 1px solid var(--line); border-radius: 18px 18px 0 0; }
   .workspace { min-height: 100dvh; }
