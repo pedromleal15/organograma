@@ -394,26 +394,31 @@ describe('sincronização Canvas ↔ Tasks', () => {
     expect(oldSection).toBeNull()
   })
 
-  it('Canvas→Tasks: renomear cargo no Canvas reflete nas opções de responsável em Tasks', () => {
+  it('Canvas→Tasks: renomear cargo no Canvas reflete no botão de responsável no card de tarefa', () => {
     renderApp()
 
+    // Encontra o input de edição do cargo 'CEO & Founder' no canvas mock (cenário 'atual')
     const canvasRoleEdits = Array.from(document.querySelectorAll<HTMLInputElement>('input')).filter(
       (el) => el.getAttribute('aria-label')?.includes('Editar cargo') && el.getAttribute('aria-label')?.includes('no canvas'),
     )
     expect(canvasRoleEdits.length).toBeGreaterThan(0)
 
+    // Renomeia via o input de edição inline do canvas (simula double-click + Enter)
     fireEvent.change(canvasRoleEdits[0], { target: { value: 'Cargo Renomeado Canvas' } })
     fireEvent.blur(canvasRoleEdits[0])
 
-    // O botão de título no Canvas deve refletir o novo nome imediatamente
+    // O botão de título no Canvas deve refletir o novo nome imediatamente (reactive)
     expect(screen.getByRole('button', { name: 'Cargo Renomeado Canvas' })).toBeTruthy()
 
-    // Navega para Tasks e verifica que o seletor de responsável lista o novo título
+    // Navega para Tasks — o seed tem task-whatsapp com roleId: 'role-ceo'
+    // O TaskCard exibe o {role.title} como botão .linkish
     fireEvent.click(screen.getByRole('button', { name: 'Tasks' }))
-    const options = Array.from(document.querySelectorAll<HTMLOptionElement>('option')).filter(
-      (opt) => opt.textContent === 'Cargo Renomeado Canvas',
+
+    // O botão de responsável no card deve mostrar o novo título do cargo
+    const roleLinkButtons = Array.from(document.querySelectorAll('.linkish')).filter(
+      (el) => el.textContent === 'Cargo Renomeado Canvas',
     )
-    expect(options.length).toBeGreaterThan(0)
+    expect(roleLinkButtons.length).toBeGreaterThan(0)
   })
 
   // ── Consistência do estado único (undo traverses both views) ──────────────
