@@ -117,8 +117,19 @@ function Column({ column, tasks }: { column: BoardColumn; tasks: TaskItem[] }) {
         type="button"
         aria-label={`Nova tarefa em ${column.title}`}
         onClick={() => {
+          const titles = new Set(
+            store.document.tasks
+              .filter((task) => task.scenarioId === column.scenarioId && task.status === column.id)
+              .map((task) => task.title),
+          )
+          let title = 'Nova tarefa'
+          let suffix = 2
+          while (titles.has(title)) {
+            title = `Nova tarefa ${suffix}`
+            suffix += 1
+          }
           store.apply(createTask(store.document, column.scenarioId, {
-            title: 'Nova tarefa',
+            title,
             status: column.id,
             description: '',
             checklist: [],

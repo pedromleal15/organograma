@@ -16,6 +16,7 @@ import {
   createRole,
   deleteRole,
   hasCycle,
+  parseDocument,
   removeBand,
   removeColumn,
   renameColumn,
@@ -37,6 +38,8 @@ describe('regras do organograma', () => {
       'todo', 'doing', 'blocked', 'done', 'col-role-ceo',
     ])
     expect(doc.columns.find((column) => column.id === 'col-role-ceo')?.kind).toBe('role')
+    const invalidBoard = addColumn(doc, 'atual', 'Fora do quadro', 'board-inexistente')
+    expect(invalidBoard.ok).toBe(false)
     const added = addColumn(doc, 'atual', 'Em revisão')
     expect(added.ok).toBe(true)
     if (!added.ok) return
@@ -67,6 +70,18 @@ describe('regras do organograma', () => {
     if (!imported.ok) return
     expect(imported.value.columns.filter((column) => column.scenarioId === 'planejada')).toHaveLength(5)
     expect(imported.value.columns.some((column) => column.roleId === 'plan-ceo')).toBe(true)
+  })
+
+  it('rejeita blocos de tarefa que não são objetos', () => {
+    const seed = createSeed()
+    const raw = {
+      ...seed,
+      tasks: seed.tasks.map((task, index) => (index === 0 ? { ...task, blocks: [null] } : task)),
+    }
+    const parsed = parseDocument(raw)
+    expect(parsed.ok).toBe(false)
+    if (parsed.ok) return
+    expect(parsed.error).toMatch(/Bloco de tarefa inválido/)
   })
 
   it('semeia o catálogo de áreas e sincroniza coluna do cargo', () => {

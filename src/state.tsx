@@ -92,7 +92,13 @@ function readUi(): UiMemory {
   try {
     const raw = sessionStorage.getItem(UI_KEY)
     if (!raw) return fallback
-    return { ...fallback, ...JSON.parse(raw) }
+    const parsed = JSON.parse(raw) as Partial<UiMemory>
+    return {
+      ...fallback,
+      ...parsed,
+      scenarioByEnv: { ...fallback.scenarioByEnv, ...parsed?.scenarioByEnv },
+      activeBoardByScenario: { ...fallback.activeBoardByScenario, ...parsed?.activeBoardByScenario },
+    }
   } catch {
     return fallback
   }

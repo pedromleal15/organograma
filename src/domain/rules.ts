@@ -426,6 +426,9 @@ export function renameColumn(doc: AppDocument, scenarioId: ScenarioId, columnId:
 export function addColumn(doc: AppDocument, scenarioId: ScenarioId, title: string, boardId?: string): Result<AppDocument> {
   const name = title.trim()
   if (!name) return fail('A coluna precisa de um nome.')
+  if (boardId && !(doc.boards ?? []).some((board) => board.id === boardId && board.scenarioId === scenarioId)) {
+    return fail('Quadro não encontrado neste cenário.')
+  }
   const targetBoard = boardId ?? defaultBoardId(scenarioId)
   const order = scenarioColumns(doc, scenarioId, targetBoard).reduce((max, column) => Math.max(max, column.order), -1) + 1
   const column = {
@@ -644,6 +647,9 @@ export function parseDocument(raw: unknown): Result<AppDocument> {
   if (raw.columns !== undefined && !Array.isArray(raw.columns)) return fail('Lista ausente: columns.')
   if (raw.boards !== undefined && !Array.isArray(raw.boards)) return fail('Lista ausente: boards.')
   if (typeof raw.revision !== 'number') return fail('Revisão inválida.')
+  if ((raw.tasks as unknown[]).some((task) =>
+    isRecord(task) && Array.isArray(task.blocks) && task.blocks.some((block) => !isRecord(block)),
+  )) return fail('Bloco de tarefa inválido.')
   const withBlocks = {
     ...raw,
     tasks: (raw.tasks as TaskItem[]).map((task) => ({
