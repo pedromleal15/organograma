@@ -83,9 +83,10 @@ function Column({ column, tasks }: { column: BoardColumn; tasks: TaskItem[] }) {
   }
   return (
     <section
-      className="column glass-column"
+      className={`column glass-column column-${column.kind ?? 'workflow'}`}
       style={{ width: Math.max(340, column.width) }}
       aria-label={column.title}
+      data-column-kind={column.kind ?? 'workflow'}
       onDragOver={(event) => event.preventDefault()}
       onDrop={(event) => {
         const taskId = event.dataTransfer.getData('text/task-id')

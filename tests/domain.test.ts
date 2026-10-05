@@ -24,6 +24,7 @@ import {
   resetAgentMemory,
   setFieldValue,
   setManager,
+  updateRole,
 } from '../src/domain/rules'
 import { createSeed } from '../src/domain/seed'
 import { previewLegacy, saveDocument } from '../src/domain/sync'
@@ -32,10 +33,14 @@ import type { AppDocument } from '../src/domain/types'
 describe('regras do organograma', () => {
   it('configura colunas do quadro e preserva tarefas ao remover', () => {
     const doc = createSeed()
-    expect(doc.columns.filter((column) => column.scenarioId === 'atual').map((column) => column.id)).toEqual(['todo', 'doing', 'blocked', 'done'])
+    expect(doc.columns.filter((column) => column.scenarioId === 'atual').map((column) => column.id)).toEqual([
+      'todo', 'doing', 'blocked', 'done', 'col-role-ceo',
+    ])
+    expect(doc.columns.find((column) => column.id === 'col-role-ceo')?.kind).toBe('role')
     const added = addColumn(doc, 'atual', 'Em revisão')
     expect(added.ok).toBe(true)
     if (!added.ok) return
+    expect(added.value.columns.find((column) => column.title === 'Em revisão')?.kind).toBe('workflow')
     const extra = added.value.columns.find((column) => column.title === 'Em revisão')!
     const renamed = renameColumn(added.value, 'atual', extra.id, 'Aprovação')
     expect(renamed.ok).toBe(true)
@@ -51,7 +56,7 @@ describe('regras do organograma', () => {
     const removed = removeColumn(withTask, 'atual', extra.id)
     expect(removed.ok).toBe(true)
     if (!removed.ok) return
-    expect(removed.value.tasks.find((task) => task.id === 'task-whatsapp')?.status).toBe('done')
+    expect(removed.value.tasks.find((task) => task.id === 'task-whatsapp')?.status).toBe('col-role-ceo')
   })
 
   it('completa colunas ao importar documento antigo', () => {
@@ -60,7 +65,24 @@ describe('regras do organograma', () => {
     const imported = replaceDocument(createSeed(), legacy)
     expect(imported.ok).toBe(true)
     if (!imported.ok) return
-    expect(imported.value.columns.filter((column) => column.scenarioId === 'planejada')).toHaveLength(4)
+    expect(imported.value.columns.filter((column) => column.scenarioId === 'planejada')).toHaveLength(5)
+    expect(imported.value.columns.some((column) => column.roleId === 'plan-ceo')).toBe(true)
+  })
+
+  it('semeia o catálogo de áreas e sincroniza coluna do cargo', () => {
+    const doc = createSeed()
+    expect(doc.areas.filter((area) => area.scenarioId === 'atual')).toHaveLength(13)
+    expect(doc.areas.filter((area) => area.scenarioId === 'planejada')).toHaveLength(13)
+    expect(doc.areas.some((area) => area.title === 'Customer Success')).toBe(true)
+    const created = createRole(doc, 'atual', 'Head Comercial', doc.areas.find((a) => a.scenarioId === 'atual' && a.title === 'Comercial')!.id)
+    expect(created.ok).toBe(true)
+    if (!created.ok) return
+    const role = created.value.roles.find((item) => item.title === 'Head Comercial')!
+    expect(created.value.columns.some((column) => column.roleId === role.id && column.title === 'Head Comercial')).toBe(true)
+    const synced = updateRole(created.value, role.id, { title: 'Head de Comercial' })
+    expect(synced.ok).toBe(true)
+    if (!synced.ok) return
+    expect(synced.value.columns.find((column) => column.roleId === role.id)?.title).toBe('Head de Comercial')
   })
 
   it('recusa ciclo hierárquico', () => {

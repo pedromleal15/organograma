@@ -1,11 +1,66 @@
-import { starterColumns } from './board'
-import type { AppDocument } from './types'
+import { makeRoleColumn, starterColumns } from './board'
+import type { AppDocument, Area, ScenarioId } from './types'
 
 const SOURCE = 'glyco-data.js'
 const DATE = '2026-10-04'
 
+/** Catálogo canônico de áreas (PT) — seed + migração sem apagar áreas extras do usuário. */
+export const AREA_CATALOG = [
+  'Diretoria',
+  'Clínica',
+  'Produto',
+  'Operações',
+  'Financeiro',
+  'Comercial',
+  'Estratégia de Conteúdo',
+  'Tráfego e Geração de Leads',
+  'Vendas e Conversão',
+  'Segurança e Compliance',
+  'Jurídico e Regulatório',
+  'People',
+  'Customer Success',
+] as const
+
+function areaId(scenarioId: ScenarioId, slug: string) {
+  return scenarioId === 'atual' ? `area-${slug}` : `plan-area-${slug}`
+}
+
+function slugifyArea(title: string) {
+  return title
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
+export function catalogAreas(scenarioId: ScenarioId): Area[] {
+  return AREA_CATALOG.map((title, order) => ({
+    id: areaId(scenarioId, slugifyArea(title)),
+    scenarioId,
+    title,
+    order,
+  }))
+}
+
+/** Insere áreas canônicas faltantes por título+cenário; não remove áreas custom. */
+export function ensureCanonicalAreas(doc: AppDocument): AppDocument {
+  const extra: Area[] = []
+  for (const scenarioId of ['atual', 'planejada'] as const) {
+    const existing = doc.areas.filter((area) => area.scenarioId === scenarioId)
+    const titles = new Set(existing.map((area) => area.title.toLowerCase()))
+    let order = existing.reduce((max, area) => Math.max(max, area.order), -1) + 1
+    for (const area of catalogAreas(scenarioId)) {
+      if (titles.has(area.title.toLowerCase())) continue
+      extra.push({ ...area, order: order++ })
+    }
+  }
+  if (extra.length === 0) return doc
+  return { ...doc, areas: [...doc.areas, ...extra] }
+}
+
 /**
- * Atual: só o que o plano e o Brain confirmam — Pedro como fundador/CEO.
+ * Atual: Pedro como fundador/CEO + catálogo completo de áreas.
  * Planejada: cargos já registrados no app anterior, marcados como proposta.
  * O playbook de 22 títulos citado no plano não está neste repositório; nada foi inventado para completar a conta.
  */
@@ -14,14 +69,7 @@ export function createSeed(): AppDocument {
     version: 1,
     revision: 1,
     people: [{ id: 'person-pedro', name: 'Pedro Leal' }],
-    areas: [
-      { id: 'area-diretoria', scenarioId: 'atual', title: 'Diretoria', order: 0 },
-      { id: 'plan-area-diretoria', scenarioId: 'planejada', title: 'Diretoria', order: 0 },
-      { id: 'plan-area-clinica', scenarioId: 'planejada', title: 'Clínica', order: 1 },
-      { id: 'plan-area-produto', scenarioId: 'planejada', title: 'Produto', order: 2 },
-      { id: 'plan-area-operacoes', scenarioId: 'planejada', title: 'Operações', order: 3 },
-      { id: 'plan-area-financeiro', scenarioId: 'planejada', title: 'Financeiro', order: 4 },
-    ],
+    areas: [...catalogAreas('atual'), ...catalogAreas('planejada')],
     roles: [
       {
         id: 'role-ceo',
@@ -120,7 +168,12 @@ export function createSeed(): AppDocument {
         title: 'Abordagem pessoal no WhatsApp',
       },
     ],
-    columns: [...starterColumns('atual'), ...starterColumns('planejada')],
+    columns: [
+      ...starterColumns('atual'),
+      makeRoleColumn('atual', 'role-ceo', 'CEO & Founder', 4),
+      ...starterColumns('planejada'),
+      makeRoleColumn('planejada', 'plan-ceo', 'CEO & Founder', 4),
+    ],
     tasks: [
       {
         id: 'task-whatsapp',

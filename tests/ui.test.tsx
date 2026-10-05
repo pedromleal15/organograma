@@ -84,7 +84,7 @@ describe('ambientes', () => {
   it('alterna organograma e tasks sem perder o cenário de cada um', () => {
     renderApp()
     expect(screen.getByRole('tree', { name: 'Cargos no organograma' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'CEO & Founder' })).toBeTruthy()
+    expect(screen.getAllByRole('button', { name: 'CEO & Founder' }).length).toBeGreaterThan(0)
     fireEvent.click(screen.getByRole('button', { name: 'Planejada' }))
     expect(screen.getByRole('button', { name: 'Head de Engenharia' })).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Tasks' }))
@@ -102,7 +102,9 @@ describe('ambientes', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Listar médicos para a primeira abordagem' }))
     fireEvent.click(screen.getByRole('button', { name: 'Abrir cargo no organograma' }))
     expect(screen.getByRole('tree', { name: 'Cargos no organograma' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'CEO & Founder' })).toBeTruthy()
+    const dialog = screen.getByRole('dialog')
+    expect(dialog).toBeTruthy()
+    expect(dialog.querySelector('#role-modal-title')?.textContent).toBe('CEO & Founder')
   })
 
   it('tabela e canvas mostram o mesmo cargo', () => {
@@ -407,8 +409,13 @@ describe('sincronização Canvas ↔ Tasks', () => {
     fireEvent.change(canvasRoleEdits[0], { target: { value: 'Cargo Renomeado Canvas' } })
     fireEvent.blur(canvasRoleEdits[0])
 
-    // O botão de título no Canvas deve refletir o novo nome imediatamente (reactive)
-    expect(screen.getByRole('button', { name: 'Cargo Renomeado Canvas' })).toBeTruthy()
+    // O input de cargo e a lane de coluna role refletem o novo nome
+    expect(screen.getAllByRole('button', { name: 'Cargo Renomeado Canvas' }).length).toBeGreaterThan(0)
+    expect(
+      Array.from(document.querySelectorAll<HTMLInputElement>('input')).some(
+        (el) => el.getAttribute('aria-label')?.includes('Editar cargo Cargo Renomeado Canvas'),
+      ),
+    ).toBe(true)
 
     // Navega para Tasks — o seed tem task-whatsapp com roleId: 'role-ceo'
     // O TaskCard exibe o {role.title} como botão .linkish

@@ -109,12 +109,18 @@ export interface Initiative {
   title: string
 }
 
+export type BoardColumnKind = 'workflow' | 'role'
+
 export interface BoardColumn {
   id: string
   scenarioId: ScenarioId
   title: string
   order: number
   width: number
+  /** workflow = status board; role = coluna ligada a um cargo do organograma */
+  kind: BoardColumnKind
+  /** Preenchido quando kind === 'role' */
+  roleId: string | null
 }
 
 export interface ChecklistItem {

@@ -1,4 +1,5 @@
-import { clampColumnWidth, ensureBoardColumns, scenarioColumns } from './board'
+import { clampColumnWidth, ensureBoardColumns, ensureRoleColumns, makeRoleColumn, roleColumnId, scenarioColumns } from './board'
+import { ensureCanonicalAreas } from './seed'
 import { uid } from './ids'
 import type {
   AgentWrite,
@@ -199,10 +200,16 @@ export function updateRole(
   if (patch.areaId && !doc.areas.some((area) => area.id === patch.areaId && area.scenarioId === role.scenarioId)) {
     return fail('Área não encontrada neste cenário.')
   }
+  const nextTitle = patch.title?.trim() ?? role.title
   const roles = doc.roles.map((item) =>
-    item.id === roleId ? { ...item, ...patch, title: patch.title?.trim() ?? item.title } : item,
+    item.id === roleId ? { ...item, ...patch, title: nextTitle } : item,
   )
-  return { ok: true, value: commit({ ...doc, roles }, {}, 'editar-cargo', patch.title?.trim() || role.title) }
+  const columns = doc.columns.map((column) =>
+    column.roleId === roleId && patch.title !== undefined
+      ? { ...column, title: nextTitle }
+      : column,
+  )
+  return { ok: true, value: commit({ ...doc, roles, columns }, {}, 'editar-cargo', nextTitle) }
 }
 
 export function createRole(
@@ -233,9 +240,21 @@ export function createRole(
     columnBandId: null,
     order: doc.placements.length,
   }
+  const order = scenarioColumns(doc, scenarioId).reduce((max, column) => Math.max(max, column.order), -1) + 1
+  const roleColumn = makeRoleColumn(scenarioId, role.id, name, order)
   return {
     ok: true,
-    value: commit({ ...doc, roles: [...doc.roles, role], placements: [...doc.placements, placement] }, {}, 'novo-cargo', name),
+    value: commit(
+      {
+        ...doc,
+        roles: [...doc.roles, role],
+        placements: [...doc.placements, placement],
+        columns: [...doc.columns, roleColumn],
+      },
+      {},
+      'novo-cargo',
+      name,
+    ),
   }
 }
 
@@ -408,8 +427,22 @@ export function addColumn(doc: AppDocument, scenarioId: ScenarioId, title: strin
   const name = title.trim()
   if (!name) return fail('A coluna precisa de um nome.')
   const order = scenarioColumns(doc, scenarioId).reduce((max, column) => Math.max(max, column.order), -1) + 1
-  const column = { id: uid('col'), scenarioId, title: name, order, width: 280 }
+  const column = { id: uid('col'), scenarioId, title: name, order, width: 360, kind: 'workflow' as const, roleId: null }
   return { ok: true, value: commit({ ...doc, columns: [...doc.columns, column] }, {}, 'nova-coluna', name) }
+}
+
+export function addRoleColumn(doc: AppDocument, roleId: string): Result<AppDocument> {
+  const role = doc.roles.find((item) => item.id === roleId)
+  if (!role) return fail('Cargo não encontrado.')
+  if (doc.columns.some((column) => column.scenarioId === role.scenarioId && column.roleId === roleId)) {
+    return { ok: true, value: doc }
+  }
+  if (doc.columns.some((column) => column.id === roleColumnId(roleId))) {
+    return fail('Já existe uma coluna com este id.')
+  }
+  const order = scenarioColumns(doc, role.scenarioId).reduce((max, column) => Math.max(max, column.order), -1) + 1
+  const column = makeRoleColumn(role.scenarioId, roleId, role.title, order)
+  return { ok: true, value: commit({ ...doc, columns: [...doc.columns, column] }, {}, 'coluna-cargo', role.title) }
 }
 
 export function resizeColumn(doc: AppDocument, scenarioId: ScenarioId, columnId: string, width: number): Result<AppDocument> {
@@ -581,7 +614,7 @@ export function parseDocument(raw: unknown): Result<AppDocument> {
       blocks: Array.isArray(task.blocks) ? task.blocks : defaultTaskBlocks(task.id),
     })),
   } as unknown as AppDocument
-  const doc = ensureBoardColumns(withBlocks)
+  const doc = ensureRoleColumns(ensureCanonicalAreas(ensureBoardColumns(withBlocks)))
   const roleIds = doc.roles.map((role) => role.id)
   if (new Set(roleIds).size !== roleIds.length) return fail('Há cargos com id repetido.')
   for (const scenarioId of ['atual', 'planejada'] as const) {

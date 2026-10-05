@@ -3,6 +3,7 @@ import {
   addBand,
   addField,
   addResponsibility,
+  addRoleColumn,
   assignPerson,
   copyRolesToScenario,
   createRole,
@@ -16,6 +17,7 @@ import {
   setManager,
   updateRole,
 } from '../domain/rules'
+import { roleColumnId } from '../domain/board'
 import type { FieldType, RelationKind, ScenarioId } from '../domain/types'
 import { useStore } from '../state'
 import { OrgCanvas } from './canvas'
@@ -46,7 +48,10 @@ export function Organograma() {
       )}
       {store.orgView === 'matriz' && <Matrix onCompare={() => setCompareOpen(true)} />}
       {store.orgView === 'tabela' && <RoleTable onCompare={() => setCompareOpen(true)} />}
-      {selected && store.orgView === 'canvas' && <RoleDrawer roleId={selected.id} />}
+      {selected && store.orgView === 'canvas' && (
+        <RoleModal roleId={selected.id} onClose={() => store.setSelectedRoleId('')} />
+      )}
+      {selected && store.orgView !== 'canvas' && <RoleDrawer roleId={selected.id} />}
       {compareOpen && (
         <aside className="drawer" aria-label="Comparar cenários">
           <button className="text-button" type="button" onClick={() => setCompareOpen(false)}>Fechar</button>
@@ -487,6 +492,125 @@ function RoleDrawer({ roleId }: { roleId: string }) {
         Excluir cargo
       </button>
     </aside>
+  )
+}
+
+function RoleModal({ roleId, onClose }: { roleId: string; onClose: () => void }) {
+  const store = useStore()
+  const dialogRef = useRef<HTMLDialogElement>(null)
+  const role = store.document.roles.find((item) => item.id === roleId)
+  const areas = store.document.areas.filter((area) => area.scenarioId === role?.scenarioId)
+  const assignment = store.document.assignments.find((item) => item.roleId === roleId)
+  const occupant = store.document.people.find((person) => person.id === assignment?.personId)
+
+  useEffect(() => {
+    if (!role) return
+    const hasColumn = store.document.columns.some(
+      (column) => column.scenarioId === role.scenarioId && column.roleId === role.id,
+    )
+    if (!hasColumn) store.apply(addRoleColumn(store.document, role.id))
+  }, [role, store])
+
+  const column = role
+    ? store.document.columns.find(
+      (col) => col.scenarioId === role.scenarioId && (col.roleId === role.id || col.id === roleColumnId(role.id)),
+    )
+    : null
+  const columnTasks = column
+    ? store.document.tasks.filter((task) => task.scenarioId === role!.scenarioId && task.status === column.id)
+    : []
+  const selectedTask = columnTasks.find((task) => task.id === store.selectedTaskId) ?? null
+
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+    try { dialog.showModal() } catch { dialog.setAttribute('open', '') }
+    return () => { try { if (dialog.open) dialog.close() } catch { /* ignore */ } }
+  }, [])
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        store.setSelectedTaskId('')
+        onClose()
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [onClose, store])
+
+  if (!role) return null
+
+  const handleClose = () => {
+    store.setSelectedTaskId('')
+    onClose()
+  }
+
+  return (
+    <dialog
+      ref={dialogRef}
+      className="role-modal lane-modal"
+      aria-modal="true"
+      aria-labelledby="role-modal-title"
+      onClick={(e) => { if (e.target === e.currentTarget) handleClose() }}
+    >
+      <div className="lane-modal-inner role-modal-inner">
+        <div className="lane-modal-head">
+          <h2 id="role-modal-title">{role.title}</h2>
+          <span className="lane-modal-count">coluna do cargo</span>
+          <button className="icon-button lane-modal-close" type="button" aria-label="Fechar" onClick={handleClose}>×</button>
+        </div>
+        <div className="role-modal-grid">
+          <div className="role-modal-edit">
+            <div className="field">
+              <span>Título</span>
+              <input value={role.title} onChange={(event) => store.apply(updateRole(store.document, role.id, { title: event.target.value }))} />
+            </div>
+            <div className="field">
+              <span>Área</span>
+              <select value={role.areaId} onChange={(event) => store.apply(updateRole(store.document, role.id, { areaId: event.target.value }))}>
+                {areas.map((area) => <option key={area.id} value={area.id}>{area.title}</option>)}
+              </select>
+            </div>
+            <div className="field">
+              <span>Status</span>
+              <select value={role.status} onChange={(event) => store.apply(updateRole(store.document, role.id, { status: event.target.value as typeof role.status }))}>
+                <option value="active">Ativo</option>
+                <option value="away">Férias</option>
+                <option value="open">Vaga</option>
+                <option value="proposal">Proposta</option>
+              </select>
+            </div>
+            <div className="field">
+              <span>Ocupante</span>
+              <input
+                defaultValue={occupant?.name ?? ''}
+                placeholder="Nome do ocupante"
+                onBlur={(event) => {
+                  const name = event.target.value.trim()
+                  if (!name) store.apply(assignPerson(store.document, role.id, null))
+                  else if (name !== occupant?.name) store.apply(assignPerson(store.document, role.id, null, name))
+                }}
+              />
+            </div>
+            <div className="field">
+              <span>Nota</span>
+              <textarea value={role.note} onChange={(event) => store.apply(updateRole(store.document, role.id, { note: event.target.value }))} />
+            </div>
+          </div>
+          <div className="role-modal-column">
+            <h3 className="role-modal-column-title">{column?.title ?? role.title}</h3>
+            <div className="lane-modal-body">
+              {!column || columnTasks.length === 0
+                ? <p className="meta lane-modal-empty">Nenhuma tarefa nesta coluna do cargo.</p>
+                : columnTasks.map((task) => <TaskCard key={task.id} task={task} />)}
+            </div>
+          </div>
+        </div>
+        {selectedTask && <TaskDrawer task={selectedTask} />}
+      </div>
+    </dialog>
   )
 }
 

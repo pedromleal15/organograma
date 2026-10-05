@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { parseDocument } from './domain/rules'
-import { ensureBoardColumns } from './domain/board'
-import { createSeed } from './domain/seed'
+import { ensureBoardColumns, ensureRoleColumns } from './domain/board'
+import { createSeed, ensureCanonicalAreas } from './domain/seed'
 import { DOCUMENT_KEY, DRAFT_KEY, LEGACY_KEY, saveDocument, type KeyValue } from './domain/sync'
 import type { AppDocument, Result, ScenarioId } from './domain/types'
 
@@ -224,7 +224,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         })
         if (outcome.status === 'saved') {
           setNotice('Salvo na API.')
-          setHistory((current) => ({ ...current, present: ensureBoardColumns(outcome.document) }))
+          setHistory((current) => ({
+            ...current,
+            present: ensureRoleColumns(ensureCanonicalAreas(ensureBoardColumns(outcome.document))),
+          }))
         } else if (outcome.status === 'draft') {
           setNotice(`Rascunho preservado neste navegador. ${outcome.error}`)
         } else {

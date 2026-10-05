@@ -600,22 +600,25 @@ button { min-height: 44px; }
 /* Glyco Design System — copied from pedromleal15/glyco-company (Blossom shell). */
 :root {
   color-scheme: light;
-  --bg: #eef0f2;
+  /* Glyco Brandbook — Paleta de Cores */
+  --bg: #f7f8fa;
   --sidebar: #ffffff;
   --card: #ffffff;
-  --card-2: #f1f3f5;
+  --card-2: #f7f8fa;
   --line: #d9dde2;
-  --text: #1a1d1f;
-  --muted: #62676f;
-  --blue: #2f6bff;
-  --blue-2: #2357d8;
-  --green: #047857;
-  --amber: #ffb703;
+  --text: #0a0a0a;
+  --ink: #0a0a0a;
+  --muted: #6b7280;
+  --blue: #0065d8;
+  --blue-2: #007aff;
+  --green: #10b981;
+  --amber: #f5a622;
+  --attention: #f5a622;
   --danger: #e5484d;
-  --shadow: 0 4px 16px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow: 0 4px 16px rgba(10, 10, 10, 0.08), 0 1px 2px rgba(10, 10, 10, 0.05);
   --input-border: #7a8088;
-  --sidebar-active-bg: #e8efff;
-  --sidebar-active-fg: #2357d8;
+  --sidebar-active-bg: #e8f1fc;
+  --sidebar-active-fg: #0065d8;
   --surface-hover: #f4f5f6;
   --radius-md: 10px;
   --radius-xl: 16px;
@@ -783,6 +786,13 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--blue); }
   background: rgba(255, 255, 255, 0.72);
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08), 0 8px 32px rgba(15, 23, 42, 0.08), inset 0 1px 0 #fff;
 }
+.column-workflow {
+  box-shadow: 0 2px 8px rgba(0, 101, 216, 0.06), 0 8px 32px rgba(15, 23, 42, 0.06), inset 0 1px 0 #fff, inset 3px 0 0 var(--blue);
+}
+.column-role {
+  box-shadow: 0 2px 8px rgba(10, 10, 10, 0.08), 0 8px 32px rgba(15, 23, 42, 0.08), inset 0 1px 0 #fff, inset 3px 0 0 var(--ink);
+}
+.column-role .column-name { font-weight: 700; }
 .column-name { color: var(--text); }
 .column-name:hover, .column-name:focus { background: rgba(255, 255, 255, 0.8); }
 .task-card { background: #fff; }
@@ -896,6 +906,34 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--blue); }
 .lane-modal-empty {
   padding: 12px 0;
   text-align: center;
+}
+
+.role-modal-inner { max-width: min(960px, 96vw); }
+.role-modal-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  gap: 16px;
+  padding: 0 20px 20px;
+  min-height: 0;
+}
+.role-modal-edit { display: grid; gap: 10px; align-content: start; }
+.role-modal-column {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 3px 0 0 var(--ink);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.role-modal-column-title {
+  margin: 0;
+  padding: 12px 14px 0;
+  font-size: 0.95rem;
+}
+@media (max-width: 720px) {
+  .role-modal-grid { grid-template-columns: 1fr; }
 }
 
 /* ─── Mention chips & autocomplete ───────────────────────────────────────── */
