@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Background,
   BackgroundVariant,
@@ -15,7 +15,7 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { layoutScenario } from '../domain/layout'
-import { updateRole } from '../domain/rules'
+import { renameColumn, updateRole } from '../domain/rules'
 import type { AppDocument, Role, ScenarioId } from '../domain/types'
 import { useStore } from '../state'
 
@@ -36,6 +36,84 @@ interface LaneData extends Record<string, unknown> {
 
 const LaneClickContext = createContext<(columnId: string) => void>(() => {})
 
+/**
+ * InlineEdit — edição inline para nós do Canvas.
+ *
+ * Modo visualização: exibe o texto. Duplo clique (ou Enter/Space no foco)
+ * ativa o modo edição sem quebrar o pan/zoom do React Flow.
+ * Modo edição: Enter/blur salva; Escape cancela. stopPropagation em todos os
+ * eventos do input impede que o React Flow interprete teclas ou ponteiros.
+ */
+function InlineEdit({ value, label, onSave }: { value: string; label: string; onSave: (next: string) => void }) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(value)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // Sync external value changes while not editing
+  useEffect(() => {
+    if (!editing) setDraft(value)
+  }, [value, editing])
+
+  // Select all text when entering edit mode
+  useEffect(() => {
+    if (editing) inputRef.current?.select()
+  }, [editing])
+
+  const commit = () => {
+    const trimmed = draft.trim()
+    if (trimmed && trimmed !== value) onSave(trimmed)
+    setEditing(false)
+  }
+
+  const discard = () => {
+    setDraft(value)
+    setEditing(false)
+  }
+
+  const enterEdit = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.stopPropagation()
+    setDraft(value)
+    setEditing(true)
+  }
+
+  if (editing) {
+    return (
+      <input
+        ref={inputRef}
+        className="canvas-inline-edit"
+        aria-label={label}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          e.stopPropagation()
+          if (e.key === 'Enter') { e.preventDefault(); commit() }
+          if (e.key === 'Escape') { e.preventDefault(); discard() }
+        }}
+        onClick={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
+      />
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      className="canvas-inline-label"
+      aria-label={`${label} — duplo clique para editar`}
+      title="Duplo clique para editar"
+      onDoubleClick={enterEdit}
+      onClick={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') enterEdit(e)
+      }}
+    >
+      {value}
+    </button>
+  )
+}
+
 function RoleNode({ data, selected }: NodeProps<Node<RoleData, 'role'>>) {
   const store = useStore()
   const status = data.role.status
@@ -46,7 +124,11 @@ function RoleNode({ data, selected }: NodeProps<Node<RoleData, 'role'>>) {
         <span>{data.area}</span>
         <span><i className={`status-dot ${status}`} /> {labelStatus(status)}</span>
       </div>
-      <h3>{data.role.title}</h3>
+      <InlineEdit
+        value={data.role.title}
+        label={`Título do cargo ${data.role.title}`}
+        onSave={(title) => store.apply(updateRole(store.document, data.role.id, { title }))}
+      />
       <p>{data.occupant || 'Sem ocupante'}</p>
       <div className="card-foot">
         <span>{data.reports} diretos</span>
@@ -67,18 +149,32 @@ function RoleNode({ data, selected }: NodeProps<Node<RoleData, 'role'>>) {
 }
 
 function LaneNode({ data }: NodeProps<Node<LaneData, 'lane'>>) {
+  const store = useStore()
   const openLane = useContext(LaneClickContext)
   return (
-    <button
-      className="lane-node"
-      type="button"
-      onClick={() => openLane(data.columnId)}
-    >
+    /*
+     * Mudança de <button> para <div> para permitir elementos interativos filhos
+     * (InlineEdit + botão de abertura) sem HTML inválido de botão aninhado.
+     * selectable: false e draggable: false estão configurados em CanvasInner,
+     * então o React Flow não tenta selecionar/arrastar este nó.
+     */
+    <div className="lane-node" role="group" aria-label={data.title}>
       <Handle type="target" position={Position.Left} />
-      <strong>{data.title}</strong>
-      <span>{data.count} {data.count === 1 ? 'tarefa' : 'tarefas'}</span>
+      <InlineEdit
+        value={data.title}
+        label={`Nome da coluna ${data.title}`}
+        onSave={(title) => store.apply(renameColumn(store.document, data.scenarioId, data.columnId, title))}
+      />
+      <button
+        className="lane-node-open"
+        type="button"
+        aria-label={`Abrir ${data.count} ${data.count === 1 ? 'tarefa' : 'tarefas'} de ${data.title}`}
+        onClick={(e) => { e.stopPropagation(); openLane(data.columnId) }}
+      >
+        {data.count} {data.count === 1 ? 'tarefa' : 'tarefas'}
+      </button>
       <Handle type="source" position={Position.Right} />
-    </button>
+    </div>
   )
 }
 

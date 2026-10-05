@@ -2,6 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { assertPedro } from '../src/domain/auth'
 import { layoutScenario, syntheticTree } from '../src/domain/layout'
 import {
+  detectActiveMention,
+  extractMentionedAreaIds,
+  insertMention,
+  parseText,
+  suggestAreas,
+} from '../src/domain/mentions'
+import {
   addColumn,
   addField,
   applyAgentWrite,
@@ -164,5 +171,86 @@ describe('acesso', () => {
   it('bloqueia quem não é o Pedro', () => {
     expect(assertPedro({ login: 'outra-pessoa' }).ok).toBe(false)
     expect(assertPedro({ login: 'pedromleal15' }).ok).toBe(true)
+  })
+})
+
+describe('mentions — parser', () => {
+  const areas = [
+    { id: 'area-mkt', title: 'Marketing' },
+    { id: 'area-ops', title: 'Operações' },
+    { id: 'area-prod', title: 'Produto' },
+    { id: 'area-eng', title: 'Head de Engenharia' },
+  ]
+
+  it('retorna texto puro sem menções', () => {
+    const segs = parseText('Olá mundo', areas)
+    expect(segs).toHaveLength(1)
+    expect(segs[0]).toEqual({ type: 'text', raw: 'Olá mundo' })
+  })
+
+  it('reconhece @Área simples', () => {
+    const segs = parseText('Ver com @Marketing amanhã', areas)
+    expect(segs).toHaveLength(3)
+    expect(segs[1]).toMatchObject({ type: 'mention', areaId: 'area-mkt', areaTitle: 'Marketing' })
+  })
+
+  it('reconhece @Área com diacríticos', () => {
+    const segs = parseText('Alinhar com @Operações', areas)
+    const mention = segs.find((s) => s.type === 'mention')
+    expect(mention?.areaId).toBe('area-ops')
+  })
+
+  it('não confunde prefixo: @Produto não captura @ProdutoTotal', () => {
+    const segs = parseText('Ver @ProdutoTotal depois', areas)
+    expect(segs.every((s) => s.type === 'text')).toBe(true)
+  })
+
+  it('match é case-insensitive', () => {
+    const segs = parseText('Falar com @marketing', areas)
+    const mention = segs.find((s) => s.type === 'mention')
+    expect(mention?.areaId).toBe('area-mkt')
+  })
+
+  it('longest-match ganha: @Head de Engenharia antes de @Head', () => {
+    const areasWithPrefix = [
+      ...areas,
+      { id: 'area-head', title: 'Head' },
+    ]
+    const segs = parseText('Escalar para @Head de Engenharia', areasWithPrefix)
+    const mention = segs.find((s) => s.type === 'mention')
+    expect(mention?.areaId).toBe('area-eng')
+  })
+
+  it('extrai IDs únicos de múltiplas menções', () => {
+    const text = '@Marketing e @Operações e @Marketing novamente'
+    const ids = extractMentionedAreaIds(text, areas)
+    expect(ids.sort()).toEqual(['area-mkt', 'area-ops'].sort())
+  })
+
+  it('detectActiveMention encontra @ na posição certa', () => {
+    const text = 'Ver com @Mar'
+    const result = detectActiveMention(text, text.length)
+    expect(result).toEqual({ start: 8, query: 'Mar' })
+  })
+
+  it('detectActiveMention retorna null sem @', () => {
+    expect(detectActiveMention('texto normal', 12)).toBeNull()
+  })
+
+  it('insertMention substitui o fragmento @query', () => {
+    const text = 'Ver com @Mar'
+    const { text: next, cursor } = insertMention(text, 8, text.length, { id: 'area-mkt', title: 'Marketing' })
+    expect(next).toBe('Ver com @Marketing')
+    expect(cursor).toBe(next.length)
+  })
+
+  it('suggestAreas filtra por query', () => {
+    const results = suggestAreas('mar', areas)
+    expect(results).toHaveLength(1)
+    expect(results[0].title).toBe('Marketing')
+  })
+
+  it('suggestAreas sem query retorna tudo até o limite', () => {
+    expect(suggestAreas('', areas, 2)).toHaveLength(2)
   })
 })

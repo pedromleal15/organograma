@@ -3,6 +3,7 @@ import { scenarioColumns } from '../domain/board'
 import { addColumn, addTaskBlock, createGoal, createInitiative, createTask, defaultTaskBlocks, removeColumn, removeTaskBlock, renameColumn, resizeColumn, setTaskStatus, updateGoalProgress, updateTask, updateTaskBlock } from '../domain/rules'
 import type { BoardColumn, TaskBlock, TaskItem } from '../domain/types'
 import { useStore } from '../state'
+import { MentionPullText } from './mention-textarea'
 
 export function Tasks() {
   const store = useStore()
@@ -247,8 +248,24 @@ function TaskBlockView({ task, block, objective }: { task: TaskItem; block: Task
           </label>
         )) : <span className="task-empty">Nenhuma ferramenta</span>)}
         {block.kind === 'objective' && <span className="task-objective">{objective}</span>}
-        {block.kind === 'context' && <PullText label={`Descrição de ${task.title}`} value={task.description} placeholder="Adicione o contexto desta tarefa" onChange={(description) => store.apply(updateTask(store.document, task.id, { description }))} />}
-        {block.kind === 'text' && <PullText label={`Conteúdo de ${block.title}`} value={block.text} placeholder="Escreva ou use só como título" onChange={(text) => store.apply(updateTaskBlock(store.document, task.id, block.id, { text }))} />}
+        {block.kind === 'context' && (
+          <MentionPullText
+            label={`Descrição de ${task.title}`}
+            value={task.description}
+            placeholder="Adicione o contexto desta tarefa — use @Área para referenciar"
+            areas={store.document.areas.filter((a) => a.scenarioId === task.scenarioId)}
+            onChange={(description) => store.apply(updateTask(store.document, task.id, { description }))}
+          />
+        )}
+        {block.kind === 'text' && (
+          <MentionPullText
+            label={`Conteúdo de ${block.title}`}
+            value={block.text}
+            placeholder="Escreva ou use @Área para referenciar"
+            areas={store.document.areas.filter((a) => a.scenarioId === task.scenarioId)}
+            onChange={(text) => store.apply(updateTaskBlock(store.document, task.id, block.id, { text }))}
+          />
+        )}
       </div>
       <button
         className="task-block-resize"
@@ -305,7 +322,13 @@ export function TaskDrawer({ task }: { task: TaskItem }) {
       </div>
       <div className="field">
         <span>Descrição</span>
-        <textarea value={task.description} onChange={(event) => store.apply(updateTask(store.document, task.id, { description: event.target.value }))} />
+        <MentionPullText
+          label={`Descrição de ${task.title}`}
+          value={task.description}
+          placeholder="Descreva a tarefa — use @Área para referenciar"
+          areas={store.document.areas.filter((a) => a.scenarioId === task.scenarioId)}
+          onChange={(description) => store.apply(updateTask(store.document, task.id, { description }))}
+        />
       </div>
       <div className="field">
         <span>Prioridade</span>

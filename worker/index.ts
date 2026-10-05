@@ -44,6 +44,8 @@ async function route(request: Request, env: Env, url: URL): Promise<Response> {
   if (url.pathname === '/api/v1/document' && request.method === 'GET') return Response.json(await readDocument(env))
   if (url.pathname === '/api/v1/document' && request.method === 'PUT') return writeDocument(request, env)
   if (url.pathname === '/api/v1/agent/apply' && request.method === 'POST') return agentApply(request, env)
+  if (url.pathname === '/api/v1/areas' && request.method === 'GET') return listAreas(env, url)
+  if (url.pathname === '/api/v1/areas/search' && request.method === 'GET') return searchAreas(env, url)
   if (url.pathname === '/api/v1/connections/github/issues') return githubIssues(env)
   if (url.pathname === '/api/v1/connections/google-tasks' && request.method === 'POST') return googlePull(env)
   if (url.pathname === '/api/v1/connections/probe' && request.method === 'POST') return probe(request, env)
@@ -136,6 +138,39 @@ async function agentApply(request: Request, env: Env): Promise<Response> {
     .run()
   await env.DB.prepare('INSERT INTO idempotency (key, body) VALUES (?, ?)').bind(write.idempotencyKey, JSON.stringify(applied.value)).run()
   return Response.json(applied.value)
+}
+
+async function listAreas(env: Env, url: URL): Promise<Response> {
+  const { document } = await readDocument(env)
+  if (!document) return Response.json([])
+  const scenarioId = url.searchParams.get('scenarioId') ?? null
+  const areas = scenarioId
+    ? document.areas.filter((a) => a.scenarioId === scenarioId)
+    : document.areas
+  return Response.json(
+    areas
+      .sort((a, b) => a.order - b.order)
+      .map((a) => ({ id: a.id, title: a.title, scenarioId: a.scenarioId, order: a.order })),
+    { headers: { 'cache-control': 'no-store' } },
+  )
+}
+
+async function searchAreas(env: Env, url: URL): Promise<Response> {
+  const { document } = await readDocument(env)
+  if (!document) return Response.json([])
+  const q = (url.searchParams.get('q') ?? '').trim().toLocaleLowerCase('pt-BR')
+  const scenarioId = url.searchParams.get('scenarioId') ?? null
+  let areas = scenarioId
+    ? document.areas.filter((a) => a.scenarioId === scenarioId)
+    : document.areas
+  if (q) areas = areas.filter((a) => a.title.toLocaleLowerCase('pt-BR').includes(q))
+  return Response.json(
+    areas
+      .sort((a, b) => a.order - b.order)
+      .slice(0, 20)
+      .map((a) => ({ id: a.id, title: a.title, scenarioId: a.scenarioId, order: a.order })),
+    { headers: { 'cache-control': 'no-store' } },
+  )
 }
 
 async function githubIssues(env: Env): Promise<Response> {
