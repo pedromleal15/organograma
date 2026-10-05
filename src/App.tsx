@@ -1,6 +1,7 @@
 import { requestNewRole, Organograma } from './ui/organograma'
 import { Connections, Settings } from './ui/pages'
 import { requestNewTask, Tasks } from './ui/tasks'
+import { AreaModal } from './ui/area-modal'
 import { useStore } from './state'
 import './styles.css'
 
@@ -81,6 +82,8 @@ export function App() {
           {store.environment === 'conexoes' && <Connections />}
         </main>
       </div>
+      {/* Global area modal — mounted once, opened via openAreaModal() from anywhere */}
+      <AreaModal />
     </div>
   )
 }
