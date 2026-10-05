@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS documents (
+  id TEXT PRIMARY KEY,
+  revision INTEGER NOT NULL,
+  body TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS idempotency (
+  key TEXT PRIMARY KEY,
+  body TEXT NOT NULL
+);
