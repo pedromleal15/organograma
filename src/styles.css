@@ -314,18 +314,18 @@ button { min-height: 44px; }
   min-height: 0;
   min-width: 0;
   overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: auto;
   padding: 4px;
   overscroll-behavior-x: contain;
 }
 .board {
   display: flex;
   gap: 16px;
-  align-items: stretch;
+  align-items: flex-start;
   width: max-content;
   min-width: 100%;
-  height: 100%;
-  min-height: 100%;
+  height: auto;
+  min-height: 0;
 }
 
 .matrix-cell, .table-wrap, .goal-card, .task-card, .callout {
@@ -339,10 +339,10 @@ button { min-height: 44px; }
   display: flex;
   flex-direction: column;
   flex: 0 0 auto;
-  align-self: stretch;
+  align-self: flex-start;
   min-width: 340px;
   max-width: 480px;
-  height: 100%;
+  height: auto;
   min-height: 0;
   border: 1px solid rgba(255, 255, 255, 0.13);
   border-radius: 28px;
@@ -368,10 +368,9 @@ button { min-height: 44px; }
 .column-cards {
   display: grid;
   gap: 10px;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: visible;
   align-content: start;
 }
 .column-resize {
@@ -387,8 +386,8 @@ button { min-height: 44px; }
 }
 .column-resize::after { content: ""; position: absolute; inset: 0 7px; border-radius: 99px; background: transparent; }
 .column-resize:hover::after, .column-resize:focus-visible::after { background: var(--blue); }
-.add-column { width: 144px; flex: 0 0 144px; align-self: stretch; border-style: dashed; }
-.add-column-form { width: 280px; flex: 0 0 280px; align-self: flex-start; max-height: 100%; overflow: auto; }
+.add-column { width: 144px; flex: 0 0 144px; align-self: flex-start; min-height: 120px; border-style: dashed; }
+.add-column-form { width: 280px; flex: 0 0 280px; align-self: flex-start; overflow: auto; }
 
 .task-card { padding: 16px; margin: 0; border-radius: 20px; background: #1c1e24; }
 .task-card-top { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 8px; align-items: start; margin-bottom: 12px; }
@@ -836,10 +835,10 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--blue); }
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08), 0 8px 32px rgba(15, 23, 42, 0.08), inset 0 1px 0 #fff;
 }
 .column-workflow {
-  box-shadow: 0 2px 8px rgba(0, 101, 216, 0.06), 0 8px 32px rgba(15, 23, 42, 0.06), inset 0 1px 0 #fff, inset 3px 0 0 var(--blue);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08), 0 8px 32px rgba(15, 23, 42, 0.08), inset 0 1px 0 #fff;
 }
 .column-role {
-  box-shadow: 0 2px 8px rgba(10, 10, 10, 0.08), 0 8px 32px rgba(15, 23, 42, 0.08), inset 0 1px 0 #fff, inset 3px 0 0 var(--ink);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08), 0 8px 32px rgba(15, 23, 42, 0.08), inset 0 1px 0 #fff;
 }
 .column-role .column-name { font-weight: 700; }
 .column-name { color: var(--text); }
@@ -1313,7 +1312,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--blue); }
     min-height: 0;
     overflow: hidden;
   }
-  .board-scroll { overflow-x: auto; overflow-y: hidden; }
+  .board-scroll { overflow-x: auto; overflow-y: auto; }
   .canvas-wrap, .panel-page:not(.board-stage) { height: auto; min-height: 70vh; }
 }
 
