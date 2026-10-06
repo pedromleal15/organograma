@@ -64,13 +64,16 @@ vi.mock('../src/ui/canvas', async () => {
 
 import { App } from '../src/App'
 import { StoreProvider } from '../src/state'
+import { ThemeProvider } from '../src/theme'
 
 function renderApp() {
   window.history.replaceState({}, '', '/organograma')
   return render(
-    <StoreProvider>
-      <App />
-    </StoreProvider>,
+    <ThemeProvider>
+      <StoreProvider>
+        <App />
+      </StoreProvider>
+    </ThemeProvider>,
   )
 }
 

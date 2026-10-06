@@ -3,11 +3,13 @@ import { Connections, Settings } from './ui/pages'
 import { requestNewBoard, requestNewTask, Tasks } from './ui/tasks'
 import { AreaModal } from './ui/area-modal'
 import { useStore } from './state'
+import { useTheme } from './theme'
 import { defaultBoardId, scenarioBoards } from './domain/board'
 import './styles.css'
 
 export function App() {
   const store = useStore()
+  const { preference, setPreference, theme } = useTheme()
   const organograma = store.environment === 'organograma'
   const tasks = store.environment === 'tasks'
 
@@ -57,6 +59,11 @@ export function App() {
         <div className="sidebar-foot">
           <button className="side-link" type="button" aria-current={store.environment === 'configuracoes' ? 'page' : undefined} onClick={() => store.setEnvironment('configuracoes')}>Configurações</button>
           <button className="side-link" type="button" aria-current={store.environment === 'conexoes' ? 'page' : undefined} onClick={() => store.setEnvironment('conexoes')}>Conexões</button>
+          <div className="theme-switch" role="group" aria-label="Tema">
+            <button type="button" aria-pressed={preference === 'light'} onClick={() => setPreference('light')} title="Claro">Claro</button>
+            <button type="button" aria-pressed={preference === 'dark'} onClick={() => setPreference('dark')} title="Escuro">Escuro</button>
+            <button type="button" aria-pressed={preference === 'system'} onClick={() => setPreference('system')} title={`Sistema (${theme})`}>Auto</button>
+          </div>
           <div className="user-pill"><span className="avatar">PL</span><span>Pedro Leal<br />sessão local</span></div>
         </div>
       </aside>
@@ -88,10 +95,16 @@ export function App() {
             </div>
           )}
           {(organograma || tasks) && (
-            <input className="search" type="search" placeholder="Buscar" aria-label="Buscar" value={store.search} onChange={(event) => store.setSearch(event.target.value)} />
+            <label className="search-field">
+              <svg className="search-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <circle cx="8.5" cy="8.5" r="5.75" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M12.75 12.75 16.5 16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              <input className="search" type="search" placeholder="Buscar" aria-label="Buscar" value={store.search} onChange={(event) => store.setSearch(event.target.value)} />
+            </label>
           )}
           {tasks && store.taskView !== 'organograma' && (
-            <select aria-label="Origem" value={store.taskOrigin} onChange={(event) => store.setTaskOrigin(event.target.value)}>
+            <select className="origin-switch" aria-label="Origem" value={store.taskOrigin} onChange={(event) => store.setTaskOrigin(event.target.value)}>
               <option value="">Todas as origens</option>
               <option value="local">Próprias</option>
               <option value="github">GitHub</option>
