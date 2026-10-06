@@ -147,7 +147,7 @@ button { min-height: 40px; }
 .sidebar-foot {
   margin-top: auto;
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 .user-pill {
   display: flex;
@@ -923,7 +923,7 @@ button {
   font-weight: 510;
   letter-spacing: -0.01em;
 }
-.app { grid-template-columns: 292px minmax(0, 1fr); padding: 12px 12px 12px 0; gap: 0; }
+.app { grid-template-columns: 304px minmax(0, 1fr); padding: 12px 12px 12px 0; gap: 0; }
 .sidebar {
   margin: 0 12px;
   min-height: calc(100vh - 24px);
@@ -943,11 +943,12 @@ button {
   box-sizing: border-box;
 }
 .sidebar .nav-label {
-  margin: 4px 2px 0;
+  margin: 2px 2px 0;
 }
 .sidebar .side-links {
   display: grid;
   gap: 2px;
+  margin-top: 0;
 }
 .sidebar .side-link {
   width: 100%;
@@ -959,6 +960,12 @@ button {
 .sidebar .theme-switch {
   width: 100%;
   box-sizing: border-box;
+}
+.sidebar-foot {
+  margin-top: auto;
+  display: grid;
+  gap: 6px;
+  padding-top: 4px;
 }
 .brand {
   min-height: 56px;
