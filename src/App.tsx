@@ -3,6 +3,7 @@ import { Connections, Settings } from './ui/pages'
 import { requestNewBoard, requestNewTask, Tasks } from './ui/tasks'
 import { AreaModal } from './ui/area-modal'
 import { useStore } from './state'
+import { useSidebar } from './sidebar'
 import { useTheme } from './theme'
 import { defaultBoardId, scenarioBoards } from './domain/board'
 import './styles.css'
@@ -10,62 +11,87 @@ import './styles.css'
 export function App() {
   const store = useStore()
   const { preference, setPreference, theme } = useTheme()
+  const { open: sidebarOpen, mobile, setOpen: setSidebarOpen, toggle: toggleSidebar } = useSidebar()
   const organograma = store.environment === 'organograma'
   const tasks = store.environment === 'tasks'
 
+  const go = (action: () => void) => {
+    action()
+    if (mobile) setSidebarOpen(false)
+  }
+
   return (
-    <div className="app">
-      <aside className="sidebar">
+    <div className={`app${sidebarOpen ? ' sidebar-open' : ' sidebar-collapsed'}`}>
+      {mobile && sidebarOpen && (
+        <button
+          className="sidebar-backdrop"
+          type="button"
+          aria-label="Fechar menu"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      <aside className="sidebar" aria-hidden={!sidebarOpen}>
         <div className="brand">
           <GlycoLogo />
           <div>
             <strong>Glyco</strong>
             <span>Estrutura e execução</span>
           </div>
+          {!mobile && (
+            <button
+              className="icon-button sidebar-collapse"
+              type="button"
+              aria-label="Esconder menu"
+              title="Esconder menu"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <PanelIcon />
+            </button>
+          )}
         </div>
         <div className="env-switch" role="group" aria-label="Ambiente">
-          <button type="button" aria-pressed={organograma} onClick={() => {
+          <button type="button" aria-pressed={organograma} onClick={() => go(() => {
             store.setOrgView('canvas')
             store.setEnvironment('organograma')
-          }}>Organograma</button>
-          <button type="button" aria-pressed={tasks} onClick={() => store.setEnvironment('tasks')}>Tasks</button>
+          })}>Organograma</button>
+          <button type="button" aria-pressed={tasks} onClick={() => go(() => store.setEnvironment('tasks'))}>Tasks</button>
         </div>
         {(organograma || tasks) && (
           <p className="nav-label">{organograma ? 'Visualização' : 'Execução'}</p>
         )}
         {organograma && (
           <div className="view-switch" role="group" aria-label="Visualização do organograma">
-            <button type="button" aria-pressed={store.orgView === 'canvas'} onClick={() => store.setOrgView('canvas')}>Canvas</button>
-            <button type="button" aria-pressed={store.orgView === 'matriz'} onClick={() => store.setOrgView('matriz')}>Matriz</button>
-            <button type="button" aria-pressed={store.orgView === 'tabela'} onClick={() => store.setOrgView('tabela')}>Tabela</button>
+            <button type="button" aria-pressed={store.orgView === 'canvas'} onClick={() => go(() => store.setOrgView('canvas'))}>Canvas</button>
+            <button type="button" aria-pressed={store.orgView === 'matriz'} onClick={() => go(() => store.setOrgView('matriz'))}>Matriz</button>
+            <button type="button" aria-pressed={store.orgView === 'tabela'} onClick={() => go(() => store.setOrgView('tabela'))}>Tabela</button>
           </div>
         )}
         {tasks && (
           <div className="view-switch view-switch-quad" role="group" aria-label="Visualização de tasks">
-            <button type="button" aria-pressed={store.taskView === 'quadro'} onClick={() => store.setTaskView('quadro')}>Quadro</button>
-            <button type="button" aria-pressed={store.taskView === 'lista'} onClick={() => store.setTaskView('lista')}>Lista</button>
-            <button type="button" aria-pressed={store.taskView === 'metas'} onClick={() => store.setTaskView('metas')}>Metas</button>
-            <button type="button" aria-pressed={store.taskView === 'organograma'} onClick={() => {
+            <button type="button" aria-pressed={store.taskView === 'quadro'} onClick={() => go(() => store.setTaskView('quadro'))}>Quadro</button>
+            <button type="button" aria-pressed={store.taskView === 'lista'} onClick={() => go(() => store.setTaskView('lista'))}>Lista</button>
+            <button type="button" aria-pressed={store.taskView === 'metas'} onClick={() => go(() => store.setTaskView('metas'))}>Metas</button>
+            <button type="button" aria-pressed={store.taskView === 'organograma'} onClick={() => go(() => {
               store.setOrgView('canvas')
               store.setTaskView('organograma')
-            }}>Organograma</button>
+            })}>Organograma</button>
           </div>
         )}
         {tasks && store.taskView === 'organograma' && (
           <>
             <p className="nav-label">Visualização</p>
             <div className="view-switch" role="group" aria-label="Visualização do organograma em tasks">
-              <button type="button" aria-pressed={store.orgView === 'canvas'} onClick={() => store.setOrgView('canvas')}>Canvas</button>
-              <button type="button" aria-pressed={store.orgView === 'matriz'} onClick={() => store.setOrgView('matriz')}>Matriz</button>
-              <button type="button" aria-pressed={store.orgView === 'tabela'} onClick={() => store.setOrgView('tabela')}>Tabela</button>
+              <button type="button" aria-pressed={store.orgView === 'canvas'} onClick={() => go(() => store.setOrgView('canvas'))}>Canvas</button>
+              <button type="button" aria-pressed={store.orgView === 'matriz'} onClick={() => go(() => store.setOrgView('matriz'))}>Matriz</button>
+              <button type="button" aria-pressed={store.orgView === 'tabela'} onClick={() => go(() => store.setOrgView('tabela'))}>Tabela</button>
             </div>
           </>
         )}
         <div className="sidebar-foot">
           <p className="nav-label">Conta</p>
           <div className="side-links">
-            <button className="side-link" type="button" aria-current={store.environment === 'configuracoes' ? 'page' : undefined} onClick={() => store.setEnvironment('configuracoes')}>Configurações</button>
-            <button className="side-link" type="button" aria-current={store.environment === 'conexoes' ? 'page' : undefined} onClick={() => store.setEnvironment('conexoes')}>Conexões</button>
+            <button className="side-link" type="button" aria-current={store.environment === 'configuracoes' ? 'page' : undefined} onClick={() => go(() => store.setEnvironment('configuracoes'))}>Configurações</button>
+            <button className="side-link" type="button" aria-current={store.environment === 'conexoes' ? 'page' : undefined} onClick={() => go(() => store.setEnvironment('conexoes'))}>Conexões</button>
           </div>
           <div className="theme-switch" role="group" aria-label="Tema">
             <button type="button" aria-pressed={preference === 'light'} onClick={() => setPreference('light')} title="Claro">Claro</button>
@@ -77,6 +103,16 @@ export function App() {
       </aside>
       <div className="workspace">
         <header className="topbar">
+          <button
+            className="icon-button sidebar-toggle"
+            type="button"
+            aria-label={sidebarOpen ? 'Esconder menu' : 'Abrir menu'}
+            aria-expanded={sidebarOpen}
+            title={sidebarOpen ? 'Esconder menu' : 'Abrir menu'}
+            onClick={toggleSidebar}
+          >
+            <PanelIcon />
+          </button>
           <p className="crumb">Glyco / <b>{organograma ? 'Organograma' : tasks ? (store.taskView === 'organograma' ? 'Tasks / Organograma' : 'Tasks') : store.environment === 'conexoes' ? 'Conexões' : 'Configurações'}</b></p>
           {tasks && store.taskView === 'quadro' && (
             <>
@@ -149,6 +185,15 @@ function GlycoLogo() {
   return (
     <svg className="glyco-logo" viewBox="0 0 361 226" role="img" aria-label="Glyco">
       {GLYCO_LOGO_PATHS.map((path) => <path key={path.slice(0, 16)} d={path} fill="currentColor" />)}
+    </svg>
+  )
+}
+
+function PanelIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <rect x="2.25" y="3" width="13.5" height="12" rx="2" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M7 3v12" stroke="currentColor" strokeWidth="1.5" />
     </svg>
   )
 }
