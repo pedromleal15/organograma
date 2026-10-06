@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './App'
+import { SidebarProvider } from './sidebar'
 import { StoreProvider } from './state'
 import { ThemeProvider } from './theme'
 
@@ -14,9 +15,11 @@ if (window.location.pathname === '/') {
 createRoot(root).render(
   <StrictMode>
     <ThemeProvider>
-      <StoreProvider>
-        <App />
-      </StoreProvider>
+      <SidebarProvider>
+        <StoreProvider>
+          <App />
+        </StoreProvider>
+      </SidebarProvider>
     </ThemeProvider>
   </StrictMode>,
 )

@@ -63,6 +63,7 @@ vi.mock('../src/ui/canvas', async () => {
 })
 
 import { App } from '../src/App'
+import { SidebarProvider } from '../src/sidebar'
 import { StoreProvider } from '../src/state'
 import { ThemeProvider } from '../src/theme'
 
@@ -70,9 +71,11 @@ function renderApp() {
   window.history.replaceState({}, '', '/organograma')
   return render(
     <ThemeProvider>
-      <StoreProvider>
-        <App />
-      </StoreProvider>
+      <SidebarProvider>
+        <StoreProvider>
+          <App />
+        </StoreProvider>
+      </SidebarProvider>
     </ThemeProvider>,
   )
 }
@@ -114,6 +117,18 @@ describe('ambientes', () => {
     expect(screen.getByText('Tasks / Organograma')).toBeTruthy()
     expect(screen.getByRole('tree', { name: 'Cargos no organograma' })).toBeTruthy()
     expect(screen.getByRole('group', { name: 'Visualização do organograma em tasks' })).toBeTruthy()
+  })
+
+  it('esconde e reabre a sidebar pelo botão do topbar', () => {
+    renderApp()
+    const topToggle = document.querySelector('.sidebar-toggle') as HTMLButtonElement
+    expect(topToggle).toBeTruthy()
+    expect(document.querySelector('.app.sidebar-open')).toBeTruthy()
+    fireEvent.click(topToggle)
+    expect(document.querySelector('.app.sidebar-collapsed')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Abrir menu' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir menu' }))
+    expect(document.querySelector('.app.sidebar-open')).toBeTruthy()
   })
 
   it('abre o cargo a partir da tarefa', () => {
