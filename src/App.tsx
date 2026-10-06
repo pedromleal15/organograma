@@ -3,11 +3,13 @@ import { Connections, Settings } from './ui/pages'
 import { requestNewBoard, requestNewTask, Tasks } from './ui/tasks'
 import { AreaModal } from './ui/area-modal'
 import { useStore } from './state'
+import { useTheme } from './theme'
 import { defaultBoardId, scenarioBoards } from './domain/board'
 import './styles.css'
 
 export function App() {
   const store = useStore()
+  const { preference, setPreference, theme } = useTheme()
   const organograma = store.environment === 'organograma'
   const tasks = store.environment === 'tasks'
 
@@ -57,6 +59,11 @@ export function App() {
         <div className="sidebar-foot">
           <button className="side-link" type="button" aria-current={store.environment === 'configuracoes' ? 'page' : undefined} onClick={() => store.setEnvironment('configuracoes')}>Configurações</button>
           <button className="side-link" type="button" aria-current={store.environment === 'conexoes' ? 'page' : undefined} onClick={() => store.setEnvironment('conexoes')}>Conexões</button>
+          <div className="theme-switch" role="group" aria-label="Tema">
+            <button type="button" aria-pressed={preference === 'light'} onClick={() => setPreference('light')} title="Claro">Claro</button>
+            <button type="button" aria-pressed={preference === 'dark'} onClick={() => setPreference('dark')} title="Escuro">Escuro</button>
+            <button type="button" aria-pressed={preference === 'system'} onClick={() => setPreference('system')} title={`Sistema (${theme})`}>Auto</button>
+          </div>
           <div className="user-pill"><span className="avatar">PL</span><span>Pedro Leal<br />sessão local</span></div>
         </div>
       </aside>

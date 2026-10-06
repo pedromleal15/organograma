@@ -3,15 +3,37 @@ import { probeMcp } from '../domain/connectors'
 import { replaceDocument } from '../domain/rules'
 import { previewLegacy } from '../domain/sync'
 import { useStore } from '../state'
+import { useTheme } from '../theme'
 
 export function Settings() {
   const store = useStore()
+  const { preference, setPreference, theme } = useTheme()
   const [legacyMessage, setLegacyMessage] = useState('')
 
   return (
     <div className="panel-page">
       <h1>Configurações</h1>
       <p className="meta">Revisão {store.document.revision}. Desfazer e refazer valem nesta sessão. O histórico de auditoria fica no documento.</p>
+      <section className="callout theme-settings">
+        <h2>Aparência</h2>
+        <p className="meta">Tema Glyco — claro, escuro ou automático com o sistema. Ativo agora: {theme === 'dark' ? 'escuro' : 'claro'}.</p>
+        <div className="theme-switch theme-switch-lg" role="group" aria-label="Tema da interface">
+          {([
+            ['light', 'Claro'],
+            ['dark', 'Escuro'],
+            ['system', 'Sistema'],
+          ] as const).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={preference === value}
+              onClick={() => setPreference(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </section>
       <div className="row-actions">
         <button className="ghost" type="button" disabled={!store.canUndo} onClick={store.undo}>Desfazer</button>
         <button className="ghost" type="button" disabled={!store.canRedo} onClick={store.redo}>Refazer</button>

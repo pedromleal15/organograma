@@ -18,6 +18,7 @@ import { layoutScenario } from '../domain/layout'
 import { renameColumn, updateRole } from '../domain/rules'
 import type { AppDocument, Role, ScenarioId } from '../domain/types'
 import { useStore } from '../state'
+import { useTheme } from '../theme'
 
 interface RoleData extends Record<string, unknown> {
   role: Role
@@ -182,11 +183,14 @@ const nodeTypes = { role: RoleNode, lane: LaneNode }
 
 function CanvasInner({ document, scenarioId, search, selectedRoleId, onLaneNodeClick }: { document: AppDocument; scenarioId: ScenarioId; search: string; selectedRoleId: string; onLaneNodeClick: (columnId: string) => void }) {
   const store = useStore()
+  const { theme } = useTheme()
   const flow = useReactFlow()
   const graph = useMemo(() => layoutScenario(document, scenarioId), [document, scenarioId])
   const query = search.trim().toLocaleLowerCase('pt-BR')
   const chain = useMemo(() => ancestorChain(document, scenarioId, selectedRoleId), [document, scenarioId, selectedRoleId])
-
+  const matrixDot = theme === 'dark' ? '#3a3f48' : '#c8ccd2'
+  const minimapBg = theme === 'dark' ? '#111318' : '#ffffff'
+  const minimapMask = theme === 'dark' ? 'rgba(10,10,10,0.72)' : 'rgba(238,240,242,0.72)'
   const lanes = document.columns.filter((column) => column.scenarioId === scenarioId).sort((a, b) => a.order - b.order)
   const laneNodes: Node<LaneData, 'lane'>[] = lanes.map((column, index) => ({
     id: `lane-${scenarioId}-${column.id}`,
@@ -260,8 +264,8 @@ function CanvasInner({ document, scenarioId, search, selectedRoleId, onLaneNodeC
         minZoom={0.2}
         maxZoom={1.6}
       >
-        <Background variant={BackgroundVariant.Dots} gap={18} size={1.2} color="#c8ccd2" />
-        <MiniMap pannable zoomable maskColor="rgba(238,240,242,0.72)" nodeColor={() => '#2f6bff'} style={{ background: '#ffffff' }} />
+        <Background variant={BackgroundVariant.Dots} gap={18} size={1.2} color={matrixDot} />
+        <MiniMap pannable zoomable maskColor={minimapMask} nodeColor={() => '#0065d8'} style={{ background: minimapBg }} />
       </ReactFlow>
       <ZoomDock />
     </div>
