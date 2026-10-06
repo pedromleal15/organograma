@@ -30,7 +30,9 @@ export function App() {
           }}>Organograma</button>
           <button type="button" aria-pressed={tasks} onClick={() => store.setEnvironment('tasks')}>Tasks</button>
         </div>
-        <p className="nav-label">{organograma ? 'Visualização' : tasks ? 'Execução' : 'Conta'}</p>
+        {(organograma || tasks) && (
+          <p className="nav-label">{organograma ? 'Visualização' : 'Execução'}</p>
+        )}
         {organograma && (
           <div className="view-switch" role="group" aria-label="Visualização do organograma">
             <button type="button" aria-pressed={store.orgView === 'canvas'} onClick={() => store.setOrgView('canvas')}>Canvas</button>
@@ -39,7 +41,7 @@ export function App() {
           </div>
         )}
         {tasks && (
-          <div className="view-switch" role="group" aria-label="Visualização de tasks">
+          <div className="view-switch view-switch-quad" role="group" aria-label="Visualização de tasks">
             <button type="button" aria-pressed={store.taskView === 'quadro'} onClick={() => store.setTaskView('quadro')}>Quadro</button>
             <button type="button" aria-pressed={store.taskView === 'lista'} onClick={() => store.setTaskView('lista')}>Lista</button>
             <button type="button" aria-pressed={store.taskView === 'metas'} onClick={() => store.setTaskView('metas')}>Metas</button>
@@ -50,15 +52,21 @@ export function App() {
           </div>
         )}
         {tasks && store.taskView === 'organograma' && (
-          <div className="view-switch" role="group" aria-label="Visualização do organograma em tasks">
-            <button type="button" aria-pressed={store.orgView === 'canvas'} onClick={() => store.setOrgView('canvas')}>Canvas</button>
-            <button type="button" aria-pressed={store.orgView === 'matriz'} onClick={() => store.setOrgView('matriz')}>Matriz</button>
-            <button type="button" aria-pressed={store.orgView === 'tabela'} onClick={() => store.setOrgView('tabela')}>Tabela</button>
-          </div>
+          <>
+            <p className="nav-label">Visualização</p>
+            <div className="view-switch" role="group" aria-label="Visualização do organograma em tasks">
+              <button type="button" aria-pressed={store.orgView === 'canvas'} onClick={() => store.setOrgView('canvas')}>Canvas</button>
+              <button type="button" aria-pressed={store.orgView === 'matriz'} onClick={() => store.setOrgView('matriz')}>Matriz</button>
+              <button type="button" aria-pressed={store.orgView === 'tabela'} onClick={() => store.setOrgView('tabela')}>Tabela</button>
+            </div>
+          </>
         )}
         <div className="sidebar-foot">
-          <button className="side-link" type="button" aria-current={store.environment === 'configuracoes' ? 'page' : undefined} onClick={() => store.setEnvironment('configuracoes')}>Configurações</button>
-          <button className="side-link" type="button" aria-current={store.environment === 'conexoes' ? 'page' : undefined} onClick={() => store.setEnvironment('conexoes')}>Conexões</button>
+          <p className="nav-label">Conta</p>
+          <div className="side-links">
+            <button className="side-link" type="button" aria-current={store.environment === 'configuracoes' ? 'page' : undefined} onClick={() => store.setEnvironment('configuracoes')}>Configurações</button>
+            <button className="side-link" type="button" aria-current={store.environment === 'conexoes' ? 'page' : undefined} onClick={() => store.setEnvironment('conexoes')}>Conexões</button>
+          </div>
           <div className="theme-switch" role="group" aria-label="Tema">
             <button type="button" aria-pressed={preference === 'light'} onClick={() => setPreference('light')} title="Claro">Claro</button>
             <button type="button" aria-pressed={preference === 'dark'} onClick={() => setPreference('dark')} title="Escuro">Escuro</button>
