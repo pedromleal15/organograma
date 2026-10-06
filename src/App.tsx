@@ -88,10 +88,16 @@ export function App() {
             </div>
           )}
           {(organograma || tasks) && (
-            <input className="search" type="search" placeholder="Buscar" aria-label="Buscar" value={store.search} onChange={(event) => store.setSearch(event.target.value)} />
+            <label className="search-field">
+              <svg className="search-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <circle cx="8.5" cy="8.5" r="5.75" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M12.75 12.75 16.5 16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              <input className="search" type="search" placeholder="Buscar" aria-label="Buscar" value={store.search} onChange={(event) => store.setSearch(event.target.value)} />
+            </label>
           )}
           {tasks && store.taskView !== 'organograma' && (
-            <select aria-label="Origem" value={store.taskOrigin} onChange={(event) => store.setTaskOrigin(event.target.value)}>
+            <select className="origin-switch" aria-label="Origem" value={store.taskOrigin} onChange={(event) => store.setTaskOrigin(event.target.value)}>
               <option value="">Todas as origens</option>
               <option value="local">Próprias</option>
               <option value="github">GitHub</option>
