@@ -404,8 +404,8 @@ button.add-column-task {
   border-radius: 50% !important;
   background: #fff !important;
   color: var(--muted) !important;
-  font-size: 1.35rem;
-  font-weight: 500;
+  font-size: var(--type-icon, 1.125rem) !important;
+  font-weight: 510 !important;
   line-height: 1;
   box-shadow: none !important;
   cursor: pointer;
@@ -451,15 +451,17 @@ button.add-column {
   flex: 0 0 auto !important;
   align-self: flex-start;
   min-width: 0 !important;
-  min-height: 36px !important;
+  min-height: var(--control-h-sm, 36px) !important;
   max-height: 44px !important;
   margin: 0;
   padding: 0 14px !important;
   border: 1px solid var(--line) !important;
-  border-radius: 9999px !important;
+  border-radius: var(--radius-pill, 9999px) !important;
   background: #fff !important;
   color: var(--text) !important;
-  font-weight: 510;
+  font-size: var(--type-body, 15px) !important;
+  font-weight: var(--weight-ui, 510) !important;
+  letter-spacing: -0.01em;
   box-shadow: none !important;
   white-space: nowrap;
   appearance: none;
@@ -797,8 +799,9 @@ button.add-column:focus-visible {
   --control-h-sm: 36px;
   --control-h-xs: 28px;
   --type-body: 15px;
-  --type-ui: 0.875rem;
+  --type-ui: 0.875rem; /* 14px */
   --type-caption: 0.72rem;
+  --type-icon: 1.125rem; /* + / × glyph in circular controls */
   --weight-regular: 400;
   --weight-ui: 510;
   --weight-strong: 590;
@@ -1113,6 +1116,9 @@ button {
 .primary,
 .ghost,
 .pill-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: var(--control-h);
   border-radius: var(--radius-pill);
   padding: 0 16px;
@@ -1130,7 +1136,7 @@ button {
 }
 .primary:hover { background: #0058bd; }
 .primary:active { background: #004a9e; }
-.primary:disabled, .pill-button:disabled, .ghost:disabled {
+.primary:disabled, .pill-button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
@@ -1139,7 +1145,13 @@ button {
   background: #fff;
   color: var(--text);
 }
-.ghost:hover { background: var(--surface-hover); }
+.ghost:hover:not(:disabled) { background: var(--surface-hover); }
+.ghost:disabled {
+  color: var(--muted);
+  background: var(--surface-hover);
+  border-color: var(--line);
+  cursor: not-allowed;
+}
 /* Quiet dismiss / secondary text action — not a bordered control */
 .text-button {
   min-height: var(--control-h-sm);
@@ -1240,7 +1252,9 @@ button {
   min-width: var(--control-h-sm) !important;
   min-height: var(--control-h-sm) !important;
   border-radius: 50% !important;
-  font-size: 1.1rem;
+  font-size: var(--type-icon) !important;
+  font-weight: var(--weight-ui);
+  line-height: 1;
 }
 .add-task-block {
   min-height: var(--control-h-sm);
@@ -1251,6 +1265,29 @@ button {
 .task-block-remove {
   min-height: var(--control-h-xs);
   border-radius: var(--radius-md);
+  font-size: var(--type-ui);
+  font-weight: var(--weight-ui);
+  line-height: 1;
+}
+.side-link {
+  min-height: var(--control-h);
+  font-size: var(--type-body);
+  font-weight: var(--weight-ui);
+  letter-spacing: -0.01em;
+}
+.nav-label {
+  font-size: var(--type-caption);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+.brand strong {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.brand span {
+  font-size: var(--type-caption);
+  font-weight: var(--weight-regular);
 }
 
 .drawer, .sheet {
@@ -1748,6 +1785,12 @@ button {
 }
 
 @media (max-width: 900px) {
+  :root {
+    --control-h: 36px;
+    --control-h-sm: 34px;
+    --type-body: 14px;
+    --type-ui: 0.8125rem;
+  }
   .app { grid-template-columns: 1fr; padding: 8px; }
   .sidebar { min-height: auto; margin: 0; border: 1px solid var(--line); }
   .board { width: max-content; display: flex; }
@@ -1765,21 +1808,59 @@ button {
     gap: 8px;
     padding: 10px 12px;
   }
-  .topbar .crumb { flex: 1 1 100%; margin-right: 0; }
+  .topbar .crumb { flex: 1 1 100%; margin-right: 0; font-size: var(--type-ui); }
   .search-field { max-width: none; flex: 1 1 160px; min-width: 140px; }
-  .primary, .ghost, .text-button, .pill-button { min-height: 36px; padding: 0 14px; font-size: 14px; }
-  .icon-button { width: 36px; min-width: 36px; min-height: 36px; }
+  .primary, .ghost, .pill-button {
+    min-height: var(--control-h);
+    padding: 0 14px;
+    font-size: var(--type-body);
+  }
+  .text-button { min-height: var(--control-h-sm); font-size: var(--type-ui); }
+  .icon-button {
+    width: var(--control-h);
+    min-width: var(--control-h);
+    min-height: var(--control-h);
+  }
+  .side-link { min-height: var(--control-h); font-size: var(--type-body); }
+  button.ghost.add-column,
+  button.add-column {
+    min-height: var(--control-h-sm) !important;
+    font-size: var(--type-body) !important;
+  }
+  button.add-column-task {
+    width: var(--control-h) !important;
+    height: var(--control-h) !important;
+    min-width: var(--control-h) !important;
+    min-height: var(--control-h) !important;
+    max-height: var(--control-h) !important;
+  }
 }
 
 @media (max-width: 640px) {
+  :root {
+    --control-h: 36px;
+    --control-h-sm: 32px;
+    --type-body: 14px;
+    --type-ui: 0.8125rem;
+  }
   .topbar {
     display: flex;
     flex-wrap: wrap;
   }
   .search, .search-field { max-width: none; width: 100%; flex: 1 1 100%; }
   .board-switch, .origin-switch { max-width: none; flex: 1 1 140px; }
+  .topbar .primary,
+  .topbar .ghost {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
   .zoom-dock { left: 12px; right: 12px; transform: none; justify-content: center; }
-  .env-switch button, .view-switch button { min-height: 34px; font-size: 0.8125rem; padding: 0 8px; }
+  .env-switch button, .view-switch button {
+    min-height: 30px;
+    font-size: var(--type-ui);
+    padding: 0 8px;
+  }
+  .secondary-link, .linkish { font-size: var(--type-body); }
 }
 
 @media (prefers-reduced-transparency: reduce) {
